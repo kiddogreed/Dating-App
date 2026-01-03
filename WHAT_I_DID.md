@@ -1,221 +1,189 @@
-📖 Matchmaking App — Development Steps So Far
-Project Overview
+# 📖 Matchmaking App — Development Steps So Far
+
+## 🚀 Project Overview
+
+A full-stack matchmaking web application built with a modern tech stack.
+
+| Category | Technology | Notes |
+| :--- | :--- | :--- |
+| **Frontend/Backend** | Next.js 13+ | App Router |
+| **Database** | PostgreSQL | Robust relational database |
+| **ORM** | Prisma 7 | Type-safe database access |
+| **Authentication** | NextAuth | Credentials Provider |
+| **Styling** | Tailwind CSS | Utility-first framework |
+| **Other Libraries** | `bcryptjs`, `socket.io`, `axios`, `zustand`, `stripe`, `Cloudinary` | |
 
-A full-stack matchmaking web application built with:
+---
 
-Frontend/Backend: Next.js 13+ (App Router)
+## 🎯 Step 0 — Project Initialization
 
-Database: PostgreSQL
+### Required Tools
 
-ORM: Prisma 7
+* **Node.js** v18+
+* **VS Code**
+* **PostgreSQL** (local or cloud, e.g., Railway)
+* **Git** + **GitHub**
 
-Authentication: NextAuth (Credentials Provider)
+### Project Setup
 
-Styling: Tailwind CSS
+1.  **Create Next.js project:**
+    ```bash
+    npx create-next-app@latest matchmaking-app
+    cd matchmaking-app
+    ```
 
-Other Libraries: bcryptjs, socket.io, axios, zustand, stripe, Cloudinary
+2.  **Installed Core Libraries:**
+    ```bash
+    npm install prisma @prisma/client next-auth bcryptjs
+    npm install tailwindcss @tailwindcss/forms
+    npm install socket.io socket.io-client
+    npm install zustand axios
+    npm install stripe
+    ```
 
-Step 0 — Project Initialization
+3.  **Initialized Prisma:**
+    ```bash
+    npx prisma init
+    ```
 
-Installed required tools:
+---
 
-Node.js v18+
+## ⚙️ Step 1 — Prisma 7 + PostgreSQL Setup
 
-VS Code
+### Configuration Changes
 
-PostgreSQL (local or cloud, e.g., Railway)
+* **Updated Prisma schema for v7:**
+    * Moved `DATABASE_URL` from `schema.prisma` $\rightarrow$ `prisma.config.ts`.
+    * Removed `url` from the schema `datasource` block.
 
-Git + GitHub
+* **Installed PostgreSQL adapter:**
+    ```bash
+    npm install @prisma/adapter-pg pg
+    npm install --save-dev @types/pg
+    ```
 
-Created Next.js project:
+* **Created `prisma.config.ts`:**
+    ```typescript
+    import { defineConfig } from "@prisma/config";
 
-npx create-next-app@latest matchmaking-app
-cd matchmaking-app
+    export default defineConfig({ 
+      datasource: { 
+        provider: "postgresql", 
+        url: process.env.DATABASE_URL!, 
+      }, 
+    });
+    ```
 
+* **Cleaned `lib/prisma.ts` (Global Prisma Client):**
+    ```typescript
+    import { PrismaClient } from "@prisma/client";
 
-Installed core libraries:
+    const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-npm install prisma @prisma/client next-auth bcryptjs
-npm install tailwindcss @tailwindcss/forms
-npm install socket.io socket.io-client
-npm install zustand axios
-npm install stripe
+    export const prisma = 
+      globalForPrisma.prisma || 
+      new PrismaClient({ log: ["query", "warn", "error"] });
 
+    if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+    ```
 
-Initialized Prisma:
+### Environment and Sync
 
-npx prisma init
+* **Ensured `.env` exists:**
+    ```dotenv
+    DATABASE_URL="postgresql://username:password@localhost:5432/MatchMakingApp"
+    NEXTAUTH_SECRET="your-secret-here"
+    NEXTAUTH_URL=http://localhost:3000
+    ```
 
-Step 1 — Prisma 7 + PostgreSQL Setup
+* **Ran Prisma commands:**
+    ```bash
+    npx prisma generate 
+    npx prisma db push
+    ```
 
-Updated Prisma schema for v7:
+> ✅ **Database is now synced with schema.**
 
-Moved DATABASE_URL from schema.prisma → prisma.config.ts
+---
 
-Removed url from schema datasource
+## 📄 Step 2 — Prisma Models (Schema)
 
-Installed PostgreSQL adapter:
+Updated `schema.prisma` with models for the core application entities:
 
-npm install @prisma/adapter-pg pg
-npm install --save-dev @types/pg
+* **User**
+* **Profile**
+* **Message**
+* **Match** (with status enum)
+* **Photo**
+* **Subscription** (for Stripe memberships)
 
+> Used `cuid()` for IDs, standard `createdAt`/`updatedAt` fields, and proper relations.
 
-Created prisma.config.ts:
+### Optional Improvements
 
-import { defineConfig } from "@prisma/config";
+* Added `Gender` enum
+* Added `MatchStatus` enum
+* Added `SubscriptionStatus` enum
 
-export default defineConfig({
-  datasource: {
-    provider: "postgresql",
-    url: process.env.DATABASE_URL!,
-  },
-});
+---
 
+## 🔑 Step 3 — NextAuth Authentication Setup
 
-Cleaned lib/prisma.ts:
+### Route and Configuration
 
-import { PrismaClient } from "@prisma/client";
+1.  **Created NextAuth catch-all route:**
+    `app/api/auth/[...nextauth]/route.ts`
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+2.  **Configured NextAuth:**
+    * Credentials provider (email + password)
+    * JWT sessions
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({ log: ["query", "warn", "error"] });
+3.  **Extended session to include `user.id`:**
+    ```typescript
+    // In callbacks:
+    session.user.id = token.id
+    ```
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+### TypeScript Fix
 
+* **Extended types to resolve TypeScript `id` error:**
+    `types/next-auth.d.ts`:
 
-Ensured .env exists:
+    ```typescript
+    declare module "next-auth" { 
+      interface Session { 
+        user: { 
+          id: string; 
+          name?: string; 
+          email?: string; 
+        }; 
+      } 
+    }
+    ```
 
-DATABASE_URL="postgresql://username:password@localhost:5432/MatchMakingApp"
-NEXTAUTH_SECRET="your-secret-here"
-NEXTAUTH_URL=http://localhost:3000
+---
 
+## 📝 Step 4 — Register API
 
-Ran Prisma:
+### Implementation
 
-npx prisma generate
-npx prisma db push
+1.  **Created user registration API:**
+    `app/api/register/route.ts`
 
+2.  **Features:**
+    * Validates required fields.
+    * Checks if email already exists.
+    * **Hashes password** with `bcryptjs`.
+    * Saves user to database via Prisma.
+    * Returns user info (without password).
 
-✅ Database is now synced with schema.
+### Test Example
 
-Step 2 — Prisma Models (Schema)
+**POST `/api/register`**
 
-Updated Prisma models for:
-
-User
-
-Profile
-
-Message
-
-Match (with status enum)
-
-Photo
-
-Subscription (for Stripe memberships)
-
-Used cuid() for IDs, createdAt/updatedAt, and proper relations.
-
-Optional improvements:
-
-Added Gender enum
-
-Added MatchStatus enum
-
-Added SubscriptionStatus enum
-
-Step 3 — NextAuth Authentication Setup
-
-Created NextAuth catch-all route:
-
-app/api/auth/[...nextauth]/route.ts
-
-
-Configured NextAuth:
-
-Credentials provider (email + password)
-
-JWT sessions
-
-Extended session to include user.id
-
-session.user.id = token.id
-
-
-Resolved TypeScript id error (if using TS) by extending types:
-
-types/next-auth.d.ts:
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      name?: string;
-      email?: string;
-    };
-  }
+```json
+{ 
+    "name": "John Doe", 
+    "email": "john@example.com", 
+    "password": "123456" 
 }
-
-Step 4 — Register API
-
-Created user registration API:
-
-app/api/register/route.ts
-
-
-Features:
-
-Validates required fields
-
-Checks if email already exists
-
-Hashes password with bcryptjs
-
-Saves user to database via Prisma
-
-Returns user info (without password)
-
-Test example (POST /api/register):
-
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "123456"
-}
-
-
-Response:
-
-{
-  "success": true,
-  "user": {
-    "id": "cmjxyoe3i0000sou4dge6ajbd",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "createdAt": "2026-01-03T07:08:23.262Z"
-  }
-}
-
-Step 5 — Prisma 7 PostgreSQL Adapter Fix
-
-Installed:
-
-npm install @prisma/adapter-pg pg
-npm install --save-dev @types/pg
-
-
-Updated PrismaClient constructor to include adapter for PostgreSQL
-
-✅ This fixed all PrismaClientConstructorValidationError issues.
-
-Step 6 — Verified Everything
-
-npm run dev starts server at http://localhost:3000
-
-Database synced with Prisma schema
-
-User registration works
-
-Prisma 7 + PostgreSQL + NextAuth setup confirmed
