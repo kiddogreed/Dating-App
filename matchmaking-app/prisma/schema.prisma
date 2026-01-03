@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,95 +6,107 @@ datasource db {
   provider = "postgresql"
 }
 
+//
+// ENUMS
+//
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  INACTIVE
+}
+
+//
+// MODELS
+//
+
+
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  password         String
-  emailVerified    DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  
-  profile          Profile?
-  messagesSent     Message[] @relation("SentMessages")
-  messagesReceived Message[] @relation("ReceivedMessages")
-  matchesInitiated Match[]   @relation("MatchInitiator")
-  matchesReceived  Match[]   @relation("MatchReceiver")
-  accounts         Account[]
-  sessions         Session[]
+  id          String        @id @default(cuid())
+  name        String?
+  email       String        @unique
+  password    String
+  image       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  profile         Profile?
+  photos          Photo[]
+  messagesSent    Message[]      @relation("SentMessages")
+  messagesReceived Message[]     @relation("ReceivedMessages")
+  matchesInitiated Match[]       @relation("MatchInitiator")
+  matchesReceived  Match[]       @relation("MatchReceiver")
+  subscription     Subscription?
 }
 
 model Profile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  firstName   String
-  lastName    String
-  dateOfBirth DateTime
-  gender      String
+  id          String @id @default(cuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id])
+
   bio         String?
+  age         Int?
+  gender      Gender?
   location    String?
-  avatar      String?
-  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model Message {
-  id         String   @id @default(cuid())
-  senderId   String
-  receiverId String
-  content    String
-  createdAt  DateTime @default(now())
+model Photo {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  createdAt DateTime @default(now())
 
-  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id])
+}
+
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  content     String
+  createdAt   DateTime @default(now())
+
+  sender      User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User @relation("ReceivedMessages", fields: [receiverId], references: [id])
 }
 
 model Match {
   id          String   @id @default(cuid())
   initiatorId String
   receiverId  String
-  status      String   @default("pending") // pending, accepted, rejected
+  status      MatchStatus @default(PENDING)
   createdAt   DateTime @default(now())
 
-  initiator User @relation("MatchInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
-  receiver  User @relation("MatchReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-  
-  @@unique([initiatorId, receiverId])
+  initiator   User @relation("MatchInitiator", fields: [initiatorId], references: [id])
+  receiver    User @relation("MatchReceiver", fields: [receiverId], references: [id])
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([provider, providerAccountId])
-}
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
+model Subscription {
+  id            String              @id @default(cuid())
+  userId        String              @unique
+  stripeSubId   String?
+  stripePriceId String?
+  status        SubscriptionStatus  @default(INACTIVE)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-  
-  @@unique([identifier, token])
+  user          User @relation(fields: [userId], references: [id])
 }
