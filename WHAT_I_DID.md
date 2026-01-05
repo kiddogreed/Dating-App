@@ -192,7 +192,7 @@ Updated `schema.prisma` with models for the core application entities:
 }
 ---
 
-## ��� Step 5 — Bug Fixes and Configuration (January 5, 2026)
+## ��� Step 5 — Bug Fixes and Configuration (January 5, 2026)
 
 ### 5.1 Fixed bcryptjs Module Resolution
 
@@ -374,7 +374,7 @@ import { prisma } from "@/lib/prisma";
 
 ---
 
-## ��� Current Project Status
+## ��� Current Project Status
 
 ### ✅ Working Features
 * User registration with validation
@@ -385,7 +385,7 @@ import { prisma } from "@/lib/prisma";
 * Protected routes via proxy middleware
 * Proper dependency management
 
-### ��� Next Steps
+### ��� Next Steps
 * Create login page UI
 * Build dashboard page
 * Implement profile creation/editing
@@ -396,7 +396,7 @@ import { prisma } from "@/lib/prisma";
 
 ---
 
-## ��� Key Learnings
+## ��� Key Learnings
 
 1. **Monorepo Structure:** When working with nested project directories, ensure all dependencies are installed in the correct location where `package.json` lives.
 
@@ -414,7 +414,7 @@ import { prisma } from "@/lib/prisma";
 
 ---
 
-## ��� Step 5 — Bug Fixes and Configuration (January 5, 2026)
+## ��� Step 5 — Bug Fixes and Configuration (January 5, 2026)
 
 ### 5.1 Fixed bcryptjs Module Resolution
 
@@ -596,7 +596,7 @@ import { prisma } from "@/lib/prisma";
 
 ---
 
-## ��� Current Project Status
+## ��� Current Project Status
 
 ### ✅ Working Features
 * User registration with validation
@@ -607,7 +607,7 @@ import { prisma } from "@/lib/prisma";
 * Protected routes via proxy middleware
 * Proper dependency management
 
-### ��� Next Steps
+### ��� Next Steps
 * Create login page UI
 * Build dashboard page
 * Implement profile creation/editing
@@ -618,7 +618,7 @@ import { prisma } from "@/lib/prisma";
 
 ---
 
-## ��� Key Learnings
+## ��� Key Learnings
 
 1. **Monorepo Structure:** When working with nested project directories, ensure all dependencies are installed in the correct location where `package.json` lives.
 
@@ -636,7 +636,7 @@ import { prisma } from "@/lib/prisma";
 
 ---
 
-## ��� Step 6 — Phase 2 Completion: Full Authentication UI (January 5, 2026)
+## ��� Step 6 — Phase 2 Completion: Full Authentication UI (January 5, 2026)
 
 ### 6.1 Created Registration Page UI
 
@@ -807,8 +807,8 @@ export default function LogoutButton() {
    ```
 
 3. **Feature Cards:**
-   * ��� Secure & Private
-   * ��� Real-time Chat
+   * ��� Secure & Private
+   * ��� Real-time Chat
    * ✨ Smart Matching
 
 4. **Gradient Design:**
@@ -851,7 +851,7 @@ rm app/api/register/page.tsx
 
 ---
 
-## ��� Phase 2: Authentication — COMPLETED
+## ��� Phase 2: Authentication — COMPLETED
 
 ### ✅ All Features Implemented
 
@@ -881,7 +881,7 @@ rm app/api/register/page.tsx
 
 ---
 
-## ��� Complete Authentication Flow
+## ��� Complete Authentication Flow
 
 ### User Journey:
 
@@ -916,7 +916,7 @@ rm app/api/register/page.tsx
 
 ---
 
-## ��� Testing Checklist for Phase 2
+## ��� Testing Checklist for Phase 2
 
 Before moving to Phase 3, verify these work:
 
@@ -935,7 +935,7 @@ Before moving to Phase 3, verify these work:
 
 ---
 
-## ��� Additional Key Learnings (Phase 2)
+## ��� Additional Key Learnings (Phase 2)
 
 6. **Client vs Server Components:** Use "use client" directive for interactive components that need hooks or event handlers. Use server components for data fetching and session validation.
 
@@ -949,4 +949,2196 @@ Before moving to Phase 3, verify these work:
 
 ---
 
-*Phase 2 Completed: January 5, 2026* ���
+*Phase 2 Completed: January 5, 2026* ���
+---
+
+## 📋 Step 7 — Phase 3: User Profiles with Shadcn UI (January 5, 2026)
+
+### 7.1 Installed Shadcn UI Components
+
+**Commands:**
+```bash
+npx shadcn@latest init
+npx shadcn@latest add button card input label textarea select avatar dialog badge
+```
+
+**Configuration:**
+* Installed Tailwind CSS v4 with new syntax
+* Added shadcn components: Button, Card, Input, Label, Textarea, Select, Avatar, Dialog, Badge
+* Created `components/ui/` directory with reusable components
+
+---
+
+### 7.2 Profile API Endpoint
+
+**File:** `app/api/profile/route.ts`
+
+**Features:**
+* GET: Fetch user's profile
+* POST: Create new profile
+* Returns 404 if profile doesn't exist
+
+**Example:**
+```typescript
+export async function GET(req: Request) {
+  const session = await getServerSession();
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const profile = await prisma.profile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!profile) {
+    return Response.json({ error: "Profile not found" }, { status: 404 });
+  }
+
+  return Response.json(profile);
+}
+```
+
+---
+
+### 7.3 Profile Update API
+
+**File:** `app/api/profile/update/route.ts`
+
+**Features:**
+* PUT: Update existing profile
+* Creates profile if it doesn't exist (upsert)
+* Validates age and gender fields
+* Protects against unauthorized updates
+
+**Validation:**
+```typescript
+if (age && (typeof age !== "number" || age < 18 || age > 120)) {
+  return Response.json({ error: "Invalid age" }, { status: 400 });
+}
+
+if (gender && !["MALE", "FEMALE", "OTHER"].includes(gender)) {
+  return Response.json({ error: "Invalid gender" }, { status: 400 });
+}
+```
+
+---
+
+### 7.4 Profile Creation Page
+
+**File:** `app/profile/create/page.tsx`
+
+**Features:**
+* Form with bio, age, location, gender fields
+* Uses Shadcn UI components (Card, Input, Select, Textarea, Button)
+* Client-side validation
+* Success redirect to dashboard
+* Protected route (requires authentication)
+
+**UI Components:**
+```typescript
+<Card>
+  <CardHeader>
+    <CardTitle>Create Your Profile</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <Textarea placeholder="Tell us about yourself..." />
+    <Input type="number" placeholder="Age" />
+    <Input placeholder="Location (City, Country)" />
+    <Select onValueChange={setGender}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select gender" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="MALE">Male</SelectItem>
+        <SelectItem value="FEMALE">Female</SelectItem>
+        <SelectItem value="OTHER">Other</SelectItem>
+      </SelectContent>
+    </Select>
+  </CardContent>
+</Card>
+```
+
+---
+
+### 7.5 Profile Edit Page
+
+**File:** `app/profile/edit/page.tsx`
+
+**Features:**
+* Pre-fills form with existing profile data
+* Uses same UI as create page
+* Fetches profile on component mount
+* Shows loading state while fetching
+* Updates profile via PUT request
+
+**Data Fetching:**
+```typescript
+useEffect(() => {
+  async function fetchProfile() {
+    const res = await fetch("/api/profile");
+    if (res.ok) {
+      const data = await res.json();
+      setBio(data.bio || "");
+      setAge(data.age?.toString() || "");
+      setLocation(data.location || "");
+      setGender(data.gender || "");
+    }
+    setLoading(false);
+  }
+  fetchProfile();
+}, []);
+```
+
+---
+
+### 7.6 Profile View Page
+
+**File:** `app/profile/[userId]/page.tsx`
+
+**Features:**
+* Dynamic route with userId parameter
+* Server-side data fetching
+* Displays user info and profile details
+* Shows first photo if available
+* Protected route
+
+**Server Component:**
+```typescript
+export default async function ProfilePage({ params }: Props) {
+  const { userId } = await params;
+  
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      profile: true,
+      photos: { orderBy: { createdAt: "desc" }, take: 1 },
+    },
+  });
+
+  if (!user) {
+    return <div>User not found</div>;
+  }
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      {user.profile?.bio && <p>{user.profile.bio}</p>}
+      {user.photos[0] && <Image src={user.photos[0].url} />}
+    </div>
+  );
+}
+```
+
+---
+
+### 7.7 Updated Dashboard with Profile Flow
+
+**Changes to `app/dashboard/page.tsx`:**
+* Checks if user has a profile
+* Redirects to `/profile/create` if no profile exists
+* Shows profile completion status
+
+**Profile Check:**
+```typescript
+const profile = await prisma.profile.findUnique({
+  where: { userId: session.user.id },
+});
+
+if (!profile) {
+  redirect("/profile/create");
+}
+```
+
+---
+
+## ✅ Phase 3: Profiles — COMPLETED
+
+**User Interface:**
+* ✅ Profile creation form with Shadcn UI
+* ✅ Profile editing functionality
+* ✅ Profile viewing page
+* ✅ Beautiful card-based layouts
+* ✅ Responsive design with Tailwind CSS v4
+
+**Backend:**
+* ✅ Profile CRUD APIs (Create, Read, Update)
+* ✅ Field validation (age, gender)
+* ✅ Database integration with Prisma
+* ✅ Protected endpoints
+
+**User Flow:**
+* ✅ New users prompted to create profile
+* ✅ Profile data persists in database
+* ✅ Edit profile anytime
+* ✅ View other users' profiles
+
+---
+
+## 📸 Step 8 — Phase 4: Photo Uploads with Cloudinary (January 5, 2026)
+
+### 8.1 Cloudinary Setup
+
+**Installed Package:**
+```bash
+npm install next-cloudinary
+```
+
+**Environment Variables:**
+```env
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+**Configuration File:** `lib/cloudinary.ts`
+```typescript
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export default cloudinary;
+```
+
+---
+
+### 8.2 Photo Upload API
+
+**File:** `app/api/photos/route.ts`
+
+**Features:**
+* POST: Upload photo to Cloudinary
+* GET: Fetch user's photos
+* Stores photo URL in database
+* Returns uploaded photo data
+
+**Upload Handler:**
+```typescript
+export async function POST(req: Request) {
+  const session = await getServerSession();
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { url } = await req.json();
+
+  const photo = await prisma.photo.create({
+    data: {
+      userId: session.user.id,
+      url,
+    },
+  });
+
+  return Response.json(photo);
+}
+```
+
+---
+
+### 8.3 Photo Upload Component
+
+**File:** `components/PhotoUpload.tsx`
+
+**Features:**
+* Client component using CldUploadWidget
+* Upload preset configuration
+* Success callback saves URL to database
+* Error handling
+* Professional styling
+
+**Component:**
+```typescript
+"use client";
+
+import { CldUploadWidget } from "next-cloudinary";
+
+export default function PhotoUpload() {
+  const handleSuccess = async (result: any) => {
+    const url = result.info.secure_url;
+    
+    await fetch("/api/photos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    
+    window.location.reload();
+  };
+
+  return (
+    <CldUploadWidget uploadPreset="your_preset" onSuccess={handleSuccess}>
+      {({ open }) => (
+        <button onClick={() => open()}>Upload Photo</button>
+      )}
+    </CldUploadWidget>
+  );
+}
+```
+
+---
+
+### 8.4 Integrated Photos in Profile Pages
+
+**Updates:**
+* Added PhotoUpload component to profile edit page
+* Display uploaded photos in profile view
+* Show user's photos in grid layout
+* Delete functionality (optional)
+
+**Display Photos:**
+```typescript
+{user.photos.map((photo) => (
+  <div key={photo.id} className="aspect-square">
+    <Image
+      src={photo.url}
+      alt="User photo"
+      width={300}
+      height={300}
+      className="object-cover rounded-lg"
+    />
+  </div>
+))}
+```
+
+---
+
+## ✅ Phase 4: Photo Uploads — COMPLETED
+
+**Features:**
+* ✅ Cloudinary integration
+* ✅ Photo upload widget
+* ✅ Photo storage in database
+* ✅ Photo display on profiles
+* ✅ Grid layout for multiple photos
+* ✅ Secure upload with presets
+
+---
+
+## 💑 Step 9 — Phase 6: Matching System (January 5, 2026)
+
+### 9.1 Match API Endpoint
+
+**File:** `app/api/matches/route.ts`
+
+**Features:**
+* POST: Like or pass on a user
+* GET: Fetch user's matches
+* Detects mutual matches
+* Updates match status automatically
+
+**Like/Pass Logic:**
+```typescript
+export async function POST(req: Request) {
+  const session = await getServerSession();
+  const { targetUserId, action } = await req.json();
+
+  if (action === "like") {
+    // Check if target already liked current user
+    const existingMatch = await prisma.match.findFirst({
+      where: {
+        initiatorId: targetUserId,
+        receiverId: session.user.id,
+        status: "PENDING",
+      },
+    });
+
+    if (existingMatch) {
+      // Mutual match! Update to ACCEPTED
+      await prisma.match.update({
+        where: { id: existingMatch.id },
+        data: { status: "ACCEPTED" },
+      });
+    } else {
+      // Create new pending match
+      await prisma.match.create({
+        data: {
+          initiatorId: session.user.id,
+          receiverId: targetUserId,
+          status: "PENDING",
+        },
+      });
+    }
+  }
+
+  return Response.json({ success: true });
+}
+```
+
+---
+
+### 9.2 Discover API with Filters
+
+**File:** `app/api/discover/route.ts`
+
+**Features:**
+* GET: Fetch potential matches
+* Filters by age range, gender, location
+* Excludes already matched/passed users
+* Returns users with profiles and photos
+
+**Query with Filters:**
+```typescript
+const users = await prisma.user.findMany({
+  where: {
+    id: { not: session.user.id },
+    profile: {
+      AND: [
+        ageMin ? { age: { gte: Number(ageMin) } } : {},
+        ageMax ? { age: { lte: Number(ageMax) } } : {},
+        gender ? { gender } : {},
+        location ? { location: { contains: location } } : {},
+      ],
+    },
+  },
+  include: {
+    profile: true,
+    photos: { take: 1, orderBy: { createdAt: "desc" } },
+  },
+});
+```
+
+---
+
+### 9.3 Discover Page UI
+
+**File:** `app/discover/page.tsx`
+
+**Features:**
+* Card-based swipe interface
+* Like/Pass buttons
+* Search filters (age, gender, location)
+* Real-time match detection
+* Shows user photos and profile info
+
+**UI Layout:**
+```typescript
+<div className="max-w-md mx-auto">
+  <Card>
+    {user.photos[0] && (
+      <img src={user.photos[0].url} className="w-full h-96 object-cover" />
+    )}
+    <CardContent>
+      <h2>{user.name}, {user.profile?.age}</h2>
+      <p>{user.profile?.bio}</p>
+      <p>📍 {user.profile?.location}</p>
+    </CardContent>
+    <CardFooter>
+      <Button onClick={handlePass} variant="outline">Pass</Button>
+      <Button onClick={handleLike}>Like ❤️</Button>
+    </CardFooter>
+  </Card>
+</div>
+```
+
+---
+
+### 9.4 Matches Page
+
+**File:** `app/matches/page.tsx`
+
+**Features:**
+* Displays all mutual matches
+* Shows matched users' photos and info
+* Link to message matched users
+* Grid layout for multiple matches
+
+**Fetch Matches:**
+```typescript
+const matches = await prisma.match.findMany({
+  where: {
+    OR: [
+      { initiatorId: session.user.id, status: "ACCEPTED" },
+      { receiverId: session.user.id, status: "ACCEPTED" },
+    ],
+  },
+  include: {
+    initiator: { include: { profile: true, photos: { take: 1 } } },
+    receiver: { include: { profile: true, photos: { take: 1 } } },
+  },
+});
+```
+
+---
+
+### 9.5 Fixed Duplicate Match Bug
+
+**Problem:** Same person appearing multiple times in matches list.
+
+**Root Cause:** Creating new match even when reverse match already existed.
+
+**Fix:**
+```typescript
+// Only update existing PENDING match, don't create new one
+const existingMatch = await prisma.match.findFirst({
+  where: {
+    initiatorId: targetUserId,
+    receiverId: session.user.id,
+    status: "PENDING",
+  },
+});
+
+if (existingMatch) {
+  await prisma.match.update({
+    where: { id: existingMatch.id },
+    data: { status: "ACCEPTED" },
+  });
+  return Response.json({ match: true });
+}
+```
+
+---
+
+## ✅ Phase 6: Matching System — COMPLETED
+
+**Features:**
+* ✅ Like/Pass functionality
+* ✅ Mutual match detection
+* ✅ Discover page with card UI
+* ✅ Matches page displaying mutual matches
+* ✅ Real-time match notifications
+* ✅ No duplicate matches bug fixed
+
+---
+
+## 🔍 Step 10 — Phase 7: Search & Filters (January 5, 2026)
+
+### 10.1 Enhanced Discover API with Filters
+
+**File:** `app/api/discover/route.ts` (Updated)
+
+**New Query Parameters:**
+* `ageMin` - Minimum age filter
+* `ageMax` - Maximum age filter
+* `gender` - Gender filter (MALE/FEMALE/OTHER)
+* `location` - Location search (contains match)
+
+**Implementation:**
+```typescript
+export async function GET(req: Request) {
+  const session = await getServerSession();
+  const { searchParams } = new URL(req.url);
+
+  const ageMin = searchParams.get("ageMin");
+  const ageMax = searchParams.get("ageMax");
+  const gender = searchParams.get("gender");
+  const location = searchParams.get("location");
+
+  const users = await prisma.user.findMany({
+    where: {
+      id: { not: session.user.id },
+      profile: {
+        AND: [
+          ageMin ? { age: { gte: Number(ageMin) } } : {},
+          ageMax ? { age: { lte: Number(ageMax) } } : {},
+          gender ? { gender } : {},
+          location ? { location: { contains: location, mode: "insensitive" } } : {},
+        ],
+      },
+    },
+    include: {
+      profile: true,
+      photos: { take: 1, orderBy: { createdAt: "desc" } },
+    },
+  });
+
+  return Response.json(users);
+}
+```
+
+**Filter Features:**
+* ✅ Age range filtering (gte/lte operators)
+* ✅ Gender exact match
+* ✅ Location case-insensitive partial match
+* ✅ Combines multiple filters with AND logic
+
+---
+
+### 10.2 Search UI in Discover Page
+
+**Updated:** `app/discover/page.tsx`
+
+**Added Filter Form:**
+```typescript
+<Card className="mb-6">
+  <CardHeader>
+    <CardTitle>Search Filters</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="grid grid-cols-2 gap-4">
+      <Input
+        type="number"
+        placeholder="Min Age"
+        value={ageMin}
+        onChange={(e) => setAgeMin(e.target.value)}
+      />
+      <Input
+        type="number"
+        placeholder="Max Age"
+        value={ageMax}
+        onChange={(e) => setAgeMax(e.target.value)}
+      />
+      <Select value={genderFilter} onValueChange={setGenderFilter}>
+        <SelectTrigger>
+          <SelectValue placeholder="Gender" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Genders</SelectItem>
+          <SelectItem value="MALE">Male</SelectItem>
+          <SelectItem value="FEMALE">Female</SelectItem>
+          <SelectItem value="OTHER">Other</SelectItem>
+        </SelectContent>
+      </Select>
+      <Input
+        placeholder="Location"
+        value={locationFilter}
+        onChange={(e) => setLocationFilter(e.target.value)}
+      />
+    </div>
+    <Button onClick={handleSearch} className="w-full mt-4">
+      Apply Filters
+    </Button>
+  </CardContent>
+</Card>
+```
+
+**Filter Logic:**
+```typescript
+const handleSearch = async () => {
+  const params = new URLSearchParams();
+  if (ageMin) params.append("ageMin", ageMin);
+  if (ageMax) params.append("ageMax", ageMax);
+  if (genderFilter && genderFilter !== "all") params.append("gender", genderFilter);
+  if (locationFilter) params.append("location", locationFilter);
+
+  const res = await fetch(`/api/discover?${params.toString()}`);
+  const data = await res.json();
+  setUsers(data);
+};
+```
+
+---
+
+### 10.3 Testing Search Filters
+
+**Test Scenarios:**
+
+1. **Age Range Filter:**
+   * Input: ageMin=25, ageMax=35
+   * Result: Only users aged 25-35 displayed ✅
+
+2. **Gender Filter:**
+   * Input: gender=FEMALE
+   * Result: Only female users displayed ✅
+
+3. **Location Filter:**
+   * Input: location=New York
+   * Result: Users with "New York" in location ✅
+
+4. **Combined Filters:**
+   * Input: ageMin=25, ageMax=30, gender=MALE, location=London
+   * Result: Males aged 25-30 in London ✅
+
+5. **No Filters:**
+   * Input: All filters empty
+   * Result: All available users displayed ✅
+
+---
+
+## ✅ Phase 7: Search & Filters — COMPLETED
+
+**Features:**
+* ✅ Age range filtering (min/max)
+* ✅ Gender filtering with dropdown
+* ✅ Location search with partial matching
+* ✅ Combine multiple filters
+* ✅ Case-insensitive search
+* ✅ Clear filter functionality
+* ✅ Responsive filter UI
+* ✅ Real-time results
+
+---
+
+## 💬 Step 11 — Phase 5: Messaging System with Unread Indicators (January 5, 2026)
+
+### 11.1 Installed Socket.IO
+
+**Installation:**
+```bash
+npm install socket.io socket.io-client
+```
+
+**Note:** Using HTTP polling instead of WebSockets for MVP simplicity.
+
+---
+
+### 11.2 Enhanced Message Schema
+
+**Updated:** `prisma/schema.prisma`
+
+**Added isRead Field:**
+```prisma
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String
+  createdAt  DateTime @default(now())
+  isRead     Boolean  @default(false)  // NEW FIELD
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+```
+
+**Database Update:**
+```bash
+npx prisma db push
+npx prisma generate
+```
+
+---
+
+### 11.3 Messages API
+
+**File:** `app/api/messages/route.ts`
+
+**Features:**
+
+1. **GET:** Fetch conversation messages
+```typescript
+export async function GET(req: Request) {
+  const session = await getServerSession();
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get("userId");
+
+  const messages = await prisma.message.findMany({
+    where: {
+      OR: [
+        { senderId: session.user.id, receiverId: userId },
+        { senderId: userId, receiverId: session.user.id },
+      ],
+    },
+    include: {
+      sender: { select: { name: true, image: true } },
+      receiver: { select: { name: true, image: true } },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  return Response.json(messages);
+}
+```
+
+2. **POST:** Send new message
+```typescript
+export async function POST(req: Request) {
+  const session = await getServerSession();
+  const { receiverId, content } = await req.json();
+
+  // Verify users are matched before allowing message
+  const match = await prisma.match.findFirst({
+    where: {
+      OR: [
+        { initiatorId: session.user.id, receiverId, status: "ACCEPTED" },
+        { initiatorId: receiverId, receiverId: session.user.id, status: "ACCEPTED" },
+      ],
+    },
+  });
+
+  if (!match) {
+    return Response.json({ error: "Cannot message unmatched users" }, { status: 403 });
+  }
+
+  const message = await prisma.message.create({
+    data: {
+      senderId: session.user.id,
+      receiverId,
+      content,
+      isRead: false,
+    },
+    include: {
+      sender: { select: { name: true, image: true } },
+      receiver: { select: { name: true, image: true } },
+    },
+  });
+
+  return Response.json(message, { status: 201 });
+}
+```
+
+---
+
+### 11.4 Unread Messages API
+
+**File:** `app/api/messages/unread/route.ts`
+
+**Features:**
+
+1. **GET:** Count unread messages
+```typescript
+export async function GET(req: Request) {
+  const session = await getServerSession();
+
+  const unreadCount = await prisma.message.count({
+    where: {
+      receiverId: session.user.id,
+      isRead: false,
+    },
+  });
+
+  return Response.json({ count: unreadCount });
+}
+```
+
+2. **PUT:** Mark messages as read
+```typescript
+export async function PUT(req: Request) {
+  const session = await getServerSession();
+  const { senderId } = await req.json();
+
+  await prisma.message.updateMany({
+    where: {
+      senderId,
+      receiverId: session.user.id,
+      isRead: false,
+    },
+    data: { isRead: true },
+  });
+
+  return Response.json({ success: true });
+}
+```
+
+---
+
+### 11.5 Conversations API
+
+**File:** `app/api/conversations/route.ts`
+
+**Features:**
+* Fetches all user's matches
+* Gets last message for each conversation
+* Counts unread messages per conversation
+* Returns sorted by most recent activity
+
+**Implementation:**
+```typescript
+export async function GET(req: Request) {
+  const session = await getServerSession();
+
+  const matches = await prisma.match.findMany({
+    where: {
+      OR: [
+        { initiatorId: session.user.id, status: "ACCEPTED" },
+        { receiverId: session.user.id, status: "ACCEPTED" },
+      ],
+    },
+    include: {
+      initiator: {
+        select: { id: true, name: true, image: true },
+        include: { photos: { take: 1, orderBy: { createdAt: "desc" } } },
+      },
+      receiver: {
+        select: { id: true, name: true, image: true },
+        include: { photos: { take: 1, orderBy: { createdAt: "desc" } } },
+      },
+    },
+  });
+
+  const conversations = await Promise.all(
+    matches.map(async (match) => {
+      const otherUser = match.initiatorId === session.user.id 
+        ? match.receiver 
+        : match.initiator;
+
+      const lastMessage = await prisma.message.findFirst({
+        where: {
+          OR: [
+            { senderId: session.user.id, receiverId: otherUser.id },
+            { senderId: otherUser.id, receiverId: session.user.id },
+          ],
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const unreadCount = await prisma.message.count({
+        where: {
+          senderId: otherUser.id,
+          receiverId: session.user.id,
+          isRead: false,
+        },
+      });
+
+      return {
+        user: otherUser,
+        lastMessage,
+        unreadCount,
+      };
+    })
+  );
+
+  return Response.json(conversations);
+}
+```
+
+---
+
+### 11.6 Unread Count Hook
+
+**File:** `hooks/useUnreadCount.ts`
+
+**Features:**
+* Custom React hook for polling unread count
+* Fetches count every 10 seconds
+* Updates automatically on component mount
+* Provides manual refresh function
+
+**Implementation:**
+```typescript
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+
+export function useUnreadCount() {
+  const [count, setCount] = useState(0);
+  const { data: session } = useSession();
+
+  const fetchUnreadCount = async () => {
+    if (!session?.user) return;
+    try {
+      const res = await fetch("/api/messages/unread");
+      if (res.ok) {
+        const data = await res.json();
+        setCount(data.count);
+      }
+    } catch (error) {
+      console.error("Failed to fetch unread count:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 10000); // Poll every 10s
+    return () => clearInterval(interval);
+  }, [session]);
+
+  return { count, refreshUnreadCount: fetchUnreadCount };
+}
+```
+
+---
+
+### 11.7 Unread Badge Component
+
+**File:** `components/UnreadBadge.tsx`
+
+**Features:**
+* Displays red dot with count
+* Shows "99+" for counts over 99
+* Conditional rendering (only shows if count > 0)
+
+**Implementation:**
+```typescript
+interface UnreadBadgeProps {
+  count: number;
+}
+
+export default function UnreadBadge({ count }: UnreadBadgeProps) {
+  if (count === 0) return null;
+
+  return (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+```
+
+---
+
+### 11.8 Messages Button with Badge
+
+**File:** `components/MessagesButtonWithBadge.tsx`
+
+**Features:**
+* Navigation button with unread indicator
+* Uses useUnreadCount hook
+* Client component for interactivity
+
+**Implementation:**
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Button } from "./ui/button";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
+
+export default function MessagesButtonWithBadge() {
+  const { count } = useUnreadCount();
+
+  return (
+    <Link href="/messages">
+      <Button variant="ghost" className="relative">
+        Messages
+        {count > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {count > 99 ? "99+" : count}
+          </span>
+        )}
+      </Button>
+    </Link>
+  );
+}
+```
+
+---
+
+### 11.9 Messages List Page
+
+**File:** `app/messages/page.tsx`
+
+**Features:**
+* Displays all conversations
+* Shows last message preview
+* Unread badge on each conversation
+* Click to open chat
+* Protected route
+
+**Implementation:**
+```typescript
+"use client";
+
+export default function MessagesPage() {
+  const [conversations, setConversations] = useState([]);
+  const { refreshUnreadCount } = useUnreadCount();
+
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  const fetchConversations = async () => {
+    const res = await fetch("/api/conversations");
+    const data = await res.json();
+    setConversations(data);
+    refreshUnreadCount();
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Messages</h1>
+      <div className="space-y-4">
+        {conversations.map((conv) => (
+          <Link key={conv.user.id} href={`/messages/${conv.user.id}`}>
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="relative">
+                  <Avatar>
+                    <AvatarImage src={conv.user.photos?.[0]?.url} />
+                    <AvatarFallback>{conv.user.name[0]}</AvatarFallback>
+                  </Avatar>
+                  {conv.unreadCount > 0 && (
+                    <UnreadBadge count={conv.unreadCount} />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">{conv.user.name}</h3>
+                  {conv.lastMessage && (
+                    <p className="text-sm text-gray-600 truncate">
+                      {conv.lastMessage.content}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### 11.10 Chat Interface
+
+**File:** `app/messages/[userId]/page.tsx`
+
+**Features:**
+* Real-time message display
+* Send message form
+* Auto-scroll to bottom
+* Mark as read when opened
+* Message timestamps
+* Sender/receiver styling
+
+**Implementation:**
+```typescript
+"use client";
+
+export default function ChatPage({ params }: Props) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [otherUser, setOtherUser] = useState(null);
+  const { data: session } = useSession();
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (userId) {
+      fetchMessages();
+    }
+  }, [userId]);
+
+  const fetchMessages = async () => {
+    const res = await fetch(`/api/messages?userId=${userId}`);
+    const data = await res.json();
+    setMessages(data);
+
+    // Mark messages as read
+    await fetch("/api/messages/unread", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ senderId: userId }),
+    });
+
+    scrollToBottom();
+  };
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+
+    await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        receiverId: userId,
+        content: newMessage,
+      }),
+    });
+
+    setNewMessage("");
+    fetchMessages();
+  };
+
+  return (
+    <div className="flex flex-col h-screen">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${
+              msg.senderId === session?.user?.id ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`max-w-xs px-4 py-2 rounded-lg ${
+                msg.senderId === session?.user?.id
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              <p>{msg.content}</p>
+              <span className="text-xs opacity-70">
+                {new Date(msg.createdAt).toLocaleTimeString()}
+              </span>
+            </div>
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form onSubmit={handleSend} className="border-t p-4">
+        <div className="flex gap-2">
+          <Input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1"
+          />
+          <Button type="submit">Send</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+```
+
+---
+
+### 11.11 Updated Navigation
+
+**Updated Dashboard and Profile Navigation:**
+* Added Messages button with unread badge
+* Integrated useUnreadCount hook
+* Real-time badge updates
+
+**Example:**
+```typescript
+<nav className="bg-white shadow-sm border-b">
+  <div className="flex items-center gap-4">
+    <Link href="/dashboard">Dashboard</Link>
+    <Link href="/discover">Discover</Link>
+    <Link href="/matches">Matches</Link>
+    <MessagesButtonWithBadge />
+    <LogoutButton />
+  </div>
+</nav>
+```
+
+---
+
+### 11.12 Fixed Prisma Client Regeneration Issue
+
+**Problem:** 
+```
+Unknown argument `isRead`. Available options are marked with ?.
+PrismaClientValidationError
+```
+
+**Root Cause:** 
+* Schema was updated with `isRead` field
+* Database was updated with `npx prisma db push`
+* But Prisma Client wasn't regenerated
+* TypeScript types didn't include new field
+
+**Solution:**
+```bash
+npx prisma generate
+```
+
+**Restart Dev Server:**
+```bash
+# Kill old server
+taskkill //F //IM node.exe
+
+# Start new server with regenerated client
+npm run dev
+```
+
+**Result:** ✅ All API endpoints now work with `isRead` field
+
+---
+
+### 11.13 Testing Results
+
+**Comprehensive Test Coverage:**
+
+1. **Unread Count API** - ✅ 200 OK
+   * Response time: 15-45ms
+   * Query: `WHERE receiverId = $1 AND isRead = false`
+
+2. **Mark as Read API** - ✅ 200 OK
+   * Response time: 45-52ms
+   * Updates: `SET isRead = true`
+
+3. **Conversations API** - ✅ 200 OK
+   * Response time: 30-87ms
+   * Includes unread counts per conversation
+
+4. **User Flow Testing:**
+   * ✅ Login → See unread count on dashboard
+   * ✅ Navigate to Messages → See conversations with badges
+   * ✅ Open conversation → Messages marked as read
+   * ✅ Send message → Creates with `isRead: false`
+   * ✅ Polling updates → Count refreshes every 10s
+
+5. **Performance:**
+   * ✅ Fast API responses (15-87ms)
+   * ✅ No errors in logs
+   * ✅ Efficient database queries
+   * ✅ Real-time updates working
+
+---
+
+## ✅ Phase 5: Messaging System — COMPLETED
+
+**Features:**
+* ✅ Send/receive messages
+* ✅ Conversation list with last message
+* ✅ One-on-one chat interface
+* ✅ Match verification before messaging
+* ✅ **Unread message indicators (red dots)**
+* ✅ **Unread count on navigation**
+* ✅ **Per-conversation unread counts**
+* ✅ **Auto mark as read when opened**
+* ✅ **Real-time polling (10s interval)**
+* ✅ Message timestamps
+* ✅ Sender/receiver styling
+* ✅ Auto-scroll to latest message
+
+**Technical Implementation:**
+* ✅ Socket.IO installed (HTTP polling used)
+* ✅ Custom React hook (useUnreadCount)
+* ✅ Reusable components (UnreadBadge)
+* ✅ Prisma schema with isRead field
+* ✅ Multiple API endpoints
+* ✅ Protected routes
+* ✅ Server-side session validation
+
+---
+
+## ✅ Phase 8: Stripe Subscriptions — COMPLETED
+
+**Features:**
+* ✅ Free and Premium subscription tiers
+* ✅ Stripe checkout integration
+* ✅ Secure payment processing
+* ✅ Webhook event handling
+* ✅ Subscription status tracking
+* ✅ Auto-renewal management
+* ✅ Beautiful pricing page
+* ✅ Premium badges in UI
+
+---
+
+### 8.1 Enhanced Subscription Schema
+
+**Updated Prisma Model:**
+```prisma
+model Subscription {
+  id                    String            @id @default(cuid())
+  userId                String            @unique
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status                SubscriptionStatus @default(INACTIVE)
+  plan                  SubscriptionPlan   @default(FREE)
+  stripeCustomerId      String?           @unique
+  stripeSubscriptionId  String?           @unique
+  stripePriceId         String?
+  stripeCurrentPeriodEnd DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  INACTIVE
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+}
+```
+
+**Database Sync:**
+```bash
+npx prisma db push --accept-data-loss
+npx prisma generate
+```
+
+---
+
+### 8.2 Stripe Configuration
+
+**Environment Variables (.env):**
+```env
+STRIPE_SECRET_KEY=sk_test_51K6qpfGedVQTFauH...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51K6qpfGedVQTFauH...
+STRIPE_WEBHOOK_SECRET=whsec_kEFioTltl5iOmNTUoVKbbfsg1fmn06Km
+STRIPE_PREMIUM_PRICE_ID=price_1SmFvzGedVQTFauHzGvJZFaI
+```
+
+**Stripe Product:**
+* Product ID: `prod_TjjOZN44P9yszM`
+* Name: "Matchmaking App Premium"
+* Price: $9.99/month (price_1SmFvzGedVQTFauHzGvJZFaI)
+
+**Created via API:**
+```bash
+curl -X POST http://localhost:3000/api/subscription/create-product
+```
+
+---
+
+### 8.3 Stripe Helper Library
+
+**Created `lib/stripe.ts`:**
+```typescript
+import Stripe from "stripe";
+import { prisma } from "./prisma";
+
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-12-18.acacia",
+});
+
+export const STRIPE_PLANS = {
+  FREE: {
+    name: "Free",
+    price: 0,
+    features: ["10 likes per day", "Basic matching", "Limited messages"],
+  },
+  PREMIUM: {
+    name: "Premium",
+    price: 9.99,
+    priceId: process.env.STRIPE_PREMIUM_PRICE_ID!,
+    features: [
+      "Unlimited likes",
+      "Advanced matching",
+      "Unlimited messages",
+      "See who liked you",
+      "Premium badge",
+    ],
+  },
+};
+
+export async function getOrCreateStripeCustomer(userId: string, email: string) {
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId },
+  });
+
+  if (subscription?.stripeCustomerId) {
+    return subscription.stripeCustomerId;
+  }
+
+  const customer = await stripe.customers.create({
+    email,
+    metadata: { userId },
+  });
+
+  await prisma.subscription.upsert({
+    where: { userId },
+    create: {
+      userId,
+      stripeCustomerId: customer.id,
+      status: "INACTIVE",
+      plan: "FREE",
+    },
+    update: {
+      stripeCustomerId: customer.id,
+    },
+  });
+
+  return customer.id;
+}
+```
+
+---
+
+### 8.4 Checkout Session API
+
+**Created `app/api/subscription/checkout/route.ts`:**
+```typescript
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { stripe, getOrCreateStripeCustomer, STRIPE_PLANS } from "@/lib/stripe";
+
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { plan } = await req.json();
+
+  if (plan !== "PREMIUM") {
+    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
+
+  const customerId = await getOrCreateStripeCustomer(
+    session.user.id,
+    session.user.email
+  );
+
+  const checkoutSession = await stripe.checkout.sessions.create({
+    customer: customerId,
+    line_items: [
+      {
+        price: STRIPE_PLANS.PREMIUM.priceId,
+        quantity: 1,
+      },
+    ],
+    mode: "subscription",
+    success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=true`,
+    cancel_url: `${process.env.NEXTAUTH_URL}/pricing?canceled=true`,
+    metadata: {
+      userId: session.user.id,
+    },
+  });
+
+  return NextResponse.json({
+    url: checkoutSession.url,
+    sessionId: checkoutSession.id,
+  });
+}
+```
+
+**Fixed Authentication Issue:**
+* Problem: 401 Unauthorized error
+* Cause: Missing `authOptions` parameter in `getServerSession()`
+* Solution: Changed from `getServerSession()` to `getServerSession(authOptions)`
+
+---
+
+### 8.5 Webhook Handler
+
+**Created `app/api/webhooks/stripe/route.ts`:**
+
+Handles all Stripe events:
+1. **checkout.session.completed** - Activates subscription
+2. **customer.subscription.updated** - Syncs subscription changes
+3. **customer.subscription.deleted** - Cancels subscription
+4. **invoice.payment_succeeded** - Confirms payment
+5. **invoice.payment_failed** - Marks subscription as inactive
+
+**Security:**
+* Validates webhook signature using `STRIPE_WEBHOOK_SECRET`
+* Prevents replay attacks
+* Verifies event authenticity
+
+**Example Event Handler:**
+```typescript
+case "checkout.session.completed": {
+  const session = event.data.object as Stripe.Checkout.Session;
+  const userId = session.metadata?.userId;
+  
+  if (userId && session.subscription) {
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription as string
+    );
+    
+    await prisma.subscription.upsert({
+      where: { userId },
+      create: {
+        userId,
+        status: "ACTIVE",
+        plan: "PREMIUM",
+        stripeCustomerId: session.customer as string,
+        stripeSubscriptionId: subscription.id,
+        stripePriceId: subscription.items.data[0].price.id,
+        stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      },
+      update: {
+        status: "ACTIVE",
+        plan: "PREMIUM",
+        stripeSubscriptionId: subscription.id,
+        stripePriceId: subscription.items.data[0].price.id,
+        stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      },
+    });
+  }
+  break;
+}
+```
+
+---
+
+### 8.6 Pricing Page UI
+
+**Created `app/pricing/page.tsx`:**
+
+Beautiful two-tier pricing page:
+* **Free Plan** - Basic features, $0/month
+* **Premium Plan** - All features, $9.99/month (Most Popular)
+
+**Features:**
+* Authentication check with `useSession`
+* Redirects unauthenticated users to login
+* Loading states during checkout
+* Error handling
+* Gradient backgrounds
+* Responsive design
+
+**Authentication Protection:**
+```typescript
+useEffect(() => {
+  if (status === "unauthenticated") {
+    router.push("/login?callbackUrl=/pricing");
+  }
+}, [status, router]);
+```
+
+---
+
+### 8.7 Subscription Status API
+
+**Created `app/api/subscription/status/route.ts`:**
+
+Returns user's current subscription:
+```json
+{
+  "plan": "PREMIUM",
+  "status": "ACTIVE",
+  "isPremium": true,
+  "isActive": true,
+  "currentPeriodEnd": "2026-02-05T12:00:00.000Z"
+}
+```
+
+Creates FREE subscription if none exists.
+
+---
+
+### 8.8 Testing Infrastructure
+
+**Created `app/api/testing/seed-users/route.ts`:**
+
+Bulk user seeding endpoint:
+* Creates up to 100 random users
+* Generates realistic profiles (names, ages, locations)
+* Uploads random profile photos
+* Creates matches between users (30% mutual)
+* Generates sample messages
+* Sets random subscription statuses
+* All users use password: `password123`
+
+**Usage:**
+```bash
+# Create 30 test users
+curl -X POST http://localhost:3000/api/testing/seed-users \
+  -H "Content-Type: application/json" \
+  -d '{"count": 30}'
+
+# Delete all test users
+curl -X DELETE http://localhost:3000/api/testing/seed-users
+```
+
+**Created `app/api/testing/stats/route.ts`:**
+
+Database statistics endpoint:
+```json
+{
+  "stats": {
+    "users": {"total": 36, "withProfiles": 32, "withPhotos": 31},
+    "matches": {"total": 54, "accepted": 26, "pending": 28},
+    "messages": {"total": 30, "unread": 11, "read": 19},
+    "subscriptions": {"premium": 9, "free": 22}
+  },
+  "sampleUsers": [...]
+}
+```
+
+**Created test health check scripts:**
+* `test-health.bat` - Windows batch script
+* `test-health.sh` - Unix shell script
+
+---
+
+### 8.9 Testing Results
+
+**API Endpoints Verified:**
+* ✅ `/api/subscription/checkout` - Creates checkout session
+* ✅ `/api/subscription/status` - Returns subscription status
+* ✅ `/api/webhooks/stripe` - Processes webhook events
+* ✅ `/api/stripe/test` - Verifies Stripe credentials
+* ✅ `/api/testing/seed-users` - Bulk user creation
+* ✅ `/api/testing/stats` - Database statistics
+
+**Stripe Integration Tested:**
+* ✅ Product created: "Matchmaking App Premium"
+* ✅ Price created: $9.99/month recurring
+* ✅ Test card accepted: 4242 4242 4242 4242
+* ✅ Checkout page loads correctly
+* ✅ Webhooks ready for event processing
+
+**Test Data Created:**
+* ✅ 36 total users in database
+* ✅ 32 users with complete profiles
+* ✅ 31 users with profile photos
+* ✅ 54 matches (26 accepted, 28 pending)
+* ✅ 30 messages (11 unread, 19 read)
+* ✅ 9 Premium subscriptions, 22 Free
+
+---
+
+### 8.10 Dashboard Updates
+
+**Enhanced with Subscription Status:**
+* Shows Premium badge for premium users
+* "Upgrade to Premium" button for free users
+* Phase 8 completion card
+* All 8 phases marked as complete
+
+---
+
+### 8.11 Documentation Created
+
+**Comprehensive Testing Docs:**
+1. **TESTING_CHECKLIST.md** - 80+ test cases across all phases
+2. **TESTING_GUIDE.md** - Step-by-step manual testing
+3. **PROJECT_SUMMARY.md** - Complete project overview
+4. **test-health.bat/sh** - Automated API health checks
+
+---
+
+## 🎯 Current Project Status (January 5, 2026)
+
+### ✅ Completed Phases
+
+| Phase | Status | Key Features |
+|-------|--------|-------------|
+| Phase 1 | ✅ | Database & Prisma Setup |
+| Phase 2 | ✅ | Authentication (Register, Login, Sessions) |
+| Phase 3 | ✅ | User Profiles (CRUD with Shadcn UI) |
+| Phase 4 | ✅ | Photo Uploads (Cloudinary) |
+| Phase 5 | ✅ | **Messaging System + Unread Indicators** |
+| Phase 6 | ✅ | Matching System (Like/Pass, Mutual Matches) |
+| Phase 7 | ✅ | **Search & Filters (Age, Gender, Location)** |
+| Phase 8 | ✅ | **Stripe Subscriptions + Testing Infrastructure** |
+
+### 🚧 Remaining Phases
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| Phase 8 | ✅ Complete | Subscriptions (Stripe Integration) |
+| Phase 9 | ⏳ Pending | Admin Tools (User Management) |
+| Phase 10 | ⏳ Pending | Deployment & Production Setup |
+
+---
+
+## 📊 Complete Feature List
+
+### Authentication & Security
+* ✅ User registration with validation
+* ✅ Email/password login
+* ✅ JWT sessions with NextAuth
+* ✅ Protected routes with proxy middleware
+* ✅ Password hashing with bcryptjs
+* ✅ Server-side session validation
+
+### User Profiles
+* ✅ Create/Edit/View profiles
+* ✅ Bio, age, location, gender fields
+* ✅ Validation for all fields
+* ✅ Beautiful UI with Shadcn components
+
+### Photos
+* ✅ Upload to Cloudinary
+* ✅ Multiple photos per user
+* ✅ Grid display layout
+* ✅ Secure upload presets
+
+### Matching
+* ✅ Swipe-style discover interface
+* ✅ Like/Pass actions
+* ✅ Mutual match detection
+* ✅ Match verification
+* ✅ Matches page
+* ✅ No duplicate matches
+
+### Search & Filters
+* ✅ Age range filtering
+* ✅ Gender filtering
+* ✅ Location search
+* ✅ Combined filters
+* ✅ Case-insensitive matching
+
+### Messaging
+* ✅ One-on-one conversations
+* ✅ Send/receive messages
+* ✅ Conversation list
+* ✅ Chat interface
+* ✅ **Red dot unread indicators**
+* ✅ **Unread count badges**
+* ✅ **Auto mark as read**
+* ✅ **Real-time polling updates**
+* ✅ Match-verified messaging
+* ✅ Message timestamps
+
+### Subscriptions & Payments
+* ✅ Free and Premium tiers
+* ✅ Stripe checkout integration
+* ✅ Secure payment processing
+* ✅ Webhook event handling
+* ✅ Subscription status tracking
+* ✅ Auto-renewal management
+* ✅ Payment failure handling
+* ✅ Beautiful pricing page
+* ✅ Subscription badges in UI
+
+### Testing Infrastructure
+* ✅ Bulk user seeding (up to 100 users)
+* ✅ Realistic test data generation
+* ✅ Database statistics endpoint
+* ✅ API health check scripts
+* ✅ Test user credential management
+* ✅ Automated profile, photo, match, and message creation
+
+---
+
+## 🔧 Technical Stack Summary
+
+| Category | Technology | Version |
+|----------|-----------|---------|
+| Frontend | Next.js | 16.1.1 |
+| Backend | Next.js App Router | 16.1.1 |
+| Database | PostgreSQL | Latest |
+| ORM | Prisma | 7.2.0 |
+| Auth | NextAuth | Latest |
+| UI Components | Shadcn UI | Latest |
+| Styling | Tailwind CSS | v4 |
+| Photo Storage | Cloudinary | Latest |
+| Payments | Stripe | Latest |
+| Real-time | Socket.IO (HTTP polling) | Latest |
+| Password Hash | bcryptjs | Latest |
+
+---
+
+## 🎓 Key Learnings Summary
+
+1. **Prisma Client Workflow:** Always run `npx prisma generate` after schema changes
+2. **Schema Changes:** `npx prisma db push` updates database, but client needs regeneration
+3. **Dev Server Restart:** Required after Prisma client regeneration to load new types
+4. **Polling vs WebSockets:** HTTP polling is simpler for MVP, can upgrade to WebSockets later
+5. **Custom Hooks:** Create reusable hooks for complex state management (useUnreadCount)
+6. **Client vs Server:** Use client components for interactive features, server for data fetching
+7. **Database Design:** Add fields like `isRead` early to avoid complex migrations later
+8. **Real-time Updates:** Polling with setInterval works well for non-critical real-time features
+9. **Component Reusability:** Create small, focused components (UnreadBadge) for reuse
+10. **Error Prevention:** Test schema changes immediately after running db push
+11. **NextAuth App Router:** `getServerSession()` requires `authOptions` parameter in App Router
+12. **Stripe Integration:** Test mode allows full payment flow testing without real charges
+13. **Webhook Security:** Always validate webhook signatures to prevent malicious requests
+14. **Environment Variables:** Keep all secrets in .env, never commit to git
+15. **Testing Infrastructure:** Build testing tools early to enable realistic testing scenarios
+16. **Bulk Data Seeding:** Essential for testing matching algorithms and message flows
+17. **API Health Checks:** Automated scripts catch integration issues quickly
+18. **Documentation:** Keep detailed logs of all changes for future reference and debugging
+
+---
+
+---
+
+## ✅ Phase 9: Admin Tools — COMPLETED
+
+**Features:**
+* ✅ Role-based access control (USER, MODERATOR, ADMIN)
+* ✅ Admin dashboard with analytics
+* ✅ User management (search, filter, ban/unban)
+* ✅ Revenue and engagement tracking
+* ✅ Banned user prevention system
+* ✅ Self-promotion to admin for development
+
+---
+
+### 9.1 Enhanced User Schema with Roles
+
+**Updated Prisma Model:**
+```prisma
+model User {
+  id               String        @id @default(cuid())
+  name             String?
+  email            String        @unique
+  password         String
+  role             UserRole      @default(USER)
+  isActive         Boolean       @default(true)
+  isBanned         Boolean       @default(false)
+  bannedAt         DateTime?
+  bannedReason     String?
+  lastLoginAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  // ... other fields
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+```
+
+**Database Sync:**
+```bash
+npx prisma db push --accept-data-loss
+npx prisma generate
+```
+
+---
+
+### 9.2 Admin Middleware & Security
+
+**Created `lib/admin.ts`:**
+```typescript
+export async function isAdmin() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return false;
+  
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+  
+  return user?.role === "ADMIN" || user?.role === "MODERATOR";
+}
+
+export async function requireAdmin() {
+  const admin = await isAdmin();
+  if (!admin) {
+    throw new Error("Unauthorized: Admin access required");
+  }
+}
+```
+
+**Enhanced Authentication:**
+Updated `lib/auth.ts` to prevent banned users from logging in:
+```typescript
+// Check if user is banned
+if (user.isBanned) {
+  throw new Error(user.bannedReason || "Account has been banned");
+}
+
+// Update last login time
+await prisma.user.update({
+  where: { id: user.id },
+  data: { lastLoginAt: new Date() },
+});
+```
+
+---
+
+### 9.3 Admin Dashboard
+
+**Created `app/admin/page.tsx`:**
+
+Beautiful admin interface with:
+
+**Statistics Cards:**
+* Total Users (active, banned, new today/week)
+* Engagement (matches, messages, photos, avg/user)
+* Premium Subscriptions (count, conversion %)
+* Revenue (MRR, ARR estimates)
+
+**User Management Table:**
+* Search by email or name
+* Filter: All / Active / Banned / Premium
+* Pagination (20 users per page)
+* Per-user stats (photos, matches, messages)
+* Role change dropdown (inline editing)
+* Ban/Unban buttons
+* User details (age, gender, location)
+
+**Features:**
+```typescript
+- Real-time search with debouncing
+- Role-based filtering
+- Responsive design
+- Loading states
+- Error handling
+- Confirmation dialogs
+```
+
+---
+
+### 9.4 Admin API Endpoints
+
+**GET `/api/admin/stats`:**
+Returns complete analytics:
+```json
+{
+  "stats": {
+    "users": {
+      "total": 36,
+      "active": 36,
+      "banned": 0,
+      "newToday": 0,
+      "newThisWeek": 30
+    },
+    "engagement": {
+      "totalMatches": 54,
+      "totalMessages": 30,
+      "totalPhotos": 31,
+      "avgMessagesPerUser": "0.83"
+    },
+    "revenue": {
+      "premiumSubscriptions": 9,
+      "monthlyRevenue": "89.91",
+      "annualRevenue": "1078.92"
+    }
+  }
+}
+```
+
+**GET `/api/admin/users`:**
+List/search/filter users with pagination:
+* Query params: page, limit, search, filter
+* Returns user array with profile, subscription, counts
+* Includes pagination metadata
+
+**POST `/api/admin/users/ban`:**
+Ban a user with reason:
+```json
+{
+  "userId": "user_id",
+  "reason": "Violation of terms"
+}
+```
+
+**DELETE `/api/admin/users/ban`:**
+Unban a user (restore access)
+
+**POST `/api/admin/users/role`:**
+Change user role:
+```json
+{
+  "userId": "user_id",
+  "role": "ADMIN" // or MODERATOR or USER
+}
+```
+
+**POST `/api/admin/make-admin`:**
+Create admin user (development only):
+```json
+{
+  "email": "admin@test.com",
+  "password": "admin123",
+  "makeAdmin": true
+}
+```
+
+**GET/POST `/api/admin/promote-me`:**
+Promote current logged-in user to ADMIN (development tool)
+
+---
+
+### 9.5 Self-Promotion UI
+
+**Created `app/admin/promote-me/page.tsx`:**
+
+User-friendly page to promote yourself to admin:
+* Checks if user is logged in
+* Shows current user email
+* One-click promotion button
+* Success/error messages
+* Auto-redirect after promotion
+
+**Usage:**
+1. Login to any account
+2. Visit http://localhost:3000/admin/promote-me
+3. Click "Promote Me to Admin"
+4. Logout and login again
+5. See admin panel button in dashboard
+
+---
+
+### 9.6 Dashboard Integration
+
+**Updated `app/dashboard/page.tsx`:**
+
+Added admin panel access:
+```typescript
+// Get user role
+const currentUser = await prisma.user.findUnique({
+  where: { id: session.user.id },
+  select: { role: true },
+});
+
+const isAdmin = currentUser?.role === "ADMIN" || 
+                currentUser?.role === "MODERATOR";
+
+// Show admin button
+{isAdmin && (
+  <Link href="/admin">
+    <Button variant="ghost" className="text-red-600">
+      🛡️ Admin Panel
+    </Button>
+  </Link>
+)}
+```
+
+---
+
+### 9.7 Security Implementation
+
+**Role-Based Access Control:**
+* All admin endpoints protected with `requireAdmin()`
+* Returns 403 Forbidden for unauthorized users
+* Checks both ADMIN and MODERATOR roles
+
+**Banned User Prevention:**
+* Login checks for banned status
+* Shows ban reason in error message
+* Updates last login timestamp
+* Banned users completely blocked from access
+
+**Audit Trail:**
+* Last login tracking (lastLoginAt)
+* Ban timestamp (bannedAt)
+* Ban reason storage (bannedReason)
+
+---
+
+### 9.8 Testing Documentation
+
+**Created `PHASE_9_TESTING.md`:**
+
+Comprehensive testing guide:
+* 10 test categories
+* Step-by-step instructions
+* Expected results for each test
+* Automated test script
+* Troubleshooting guide
+* Success criteria checklist
+
+**Test Categories:**
+1. User promotion to admin
+2. Admin dashboard access
+3. Admin statistics API
+4. User management
+5. Ban/unban functionality
+6. Role management
+7. UI testing
+8. Security tests
+9. End-to-end workflow
+10. Regression testing (Phases 1-8)
+
+---
+
+### 9.9 Key Features Summary
+
+**Admin Analytics:**
+* Real-time user statistics
+* Engagement metrics
+* Revenue tracking (Premium subscriptions)
+* Growth metrics (new users today/week)
+
+**User Management:**
+* Search users by email/name
+* Filter by status (active/banned/premium)
+* Paginated results (20 per page)
+* View user details and activity
+
+**Moderation Tools:**
+* Ban users with custom reason
+* Unban users to restore access
+* Banned users cannot login
+* Ban reason shown on login attempt
+
+**Role Management:**
+* Three roles: USER, MODERATOR, ADMIN
+* Inline role changes via dropdown
+* Immediate permission updates
+* Role-based UI visibility
+
+**Development Tools:**
+* Self-promotion endpoint
+* Admin user creation API
+* User-friendly promotion page
+
+---
+
+### 9.10 Admin Panel UI Screenshots
+
+**Statistics Dashboard:**
+* 4 metric cards (users, engagement, premium, revenue)
+* Color-coded cards (purple, green, yellow, blue)
+* Real-time data from database
+* Percentage calculations
+
+**User Table:**
+* Comprehensive user information
+* Inline role editing
+* Action buttons (ban/unban)
+* Search and filter controls
+* Pagination controls
+
+---
+
+*Last Updated: January 6, 2026 - **All 9 Phases Completed!** Admin Tools Fully Functional* 🚀🎉
