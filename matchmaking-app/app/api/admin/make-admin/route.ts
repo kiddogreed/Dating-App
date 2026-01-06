@@ -31,7 +31,8 @@ export async function POST(req: Request) {
           select: {
             id: true,
             email: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             role: true,
           },
         });
@@ -51,18 +52,21 @@ export async function POST(req: Request) {
 
     // Create new user
     const hashedPassword = await bcrypt.hash(password, 10);
+    const emailName = email.split("@")[0];
 
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        name: email.split("@")[0],
+        firstName: emailName,
+        lastName: "Admin",
         role: makeAdmin ? "ADMIN" : "USER",
       },
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         role: true,
       },
     });

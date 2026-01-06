@@ -26,7 +26,8 @@ export async function POST(req: Request) {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         isBanned: true,
         bannedReason: true,
       },
@@ -69,7 +70,8 @@ export async function DELETE(req: Request) {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+            lastName: true,
         isBanned: true,
       },
     });

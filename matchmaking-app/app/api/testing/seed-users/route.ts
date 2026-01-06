@@ -92,9 +92,11 @@ export async function POST(req: Request) {
         // Create user with profile and photo
         const user = await prisma.user.create({
           data: {
-            name: `${firstName} ${lastName}`,
+            firstName,
+            lastName,
             email,
             password: hashedPassword,
+            emailVerified: true, // Auto-verify test users
             profile: {
               create: {
                 age,
@@ -198,7 +200,8 @@ export async function POST(req: Request) {
       },
       sampleUsers: createdUsers.slice(0, 5).map(u => ({
         email: u.email,
-        name: u.name,
+        firstName: u.firstName,
+        lastName: u.lastName,
         age: u.profile?.age,
         location: u.profile?.location,
       })),

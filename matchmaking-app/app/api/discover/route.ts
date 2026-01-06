@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
         user: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             photos: {
               take: 3,
               orderBy: { createdAt: "desc" },

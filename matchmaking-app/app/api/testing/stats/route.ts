@@ -34,7 +34,8 @@ export async function GET() {
       },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+            lastName: true,
         email: true,
         profile: {
           select: {
@@ -82,7 +83,8 @@ export async function GET() {
       },
       sampleUsers: sampleUsers.map((u) => ({
         email: u.email,
-        name: u.name,
+        firstName: u.firstName,
+        lastName: u.lastName,
         age: u.profile?.age,
         gender: u.profile?.gender,
         location: u.profile?.location,

@@ -125,7 +125,8 @@ export async function GET(req: NextRequest) {
         initiator: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
             image: true,
             profile: true,
@@ -138,7 +139,8 @@ export async function GET(req: NextRequest) {
         receiver: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
             image: true,
             profile: true,

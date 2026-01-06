@@ -24,7 +24,8 @@ export async function GET(req: NextRequest) {
         initiator: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             image: true,
             photos: {
               take: 1,
@@ -35,7 +36,8 @@ export async function GET(req: NextRequest) {
         receiver: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             image: true,
             photos: {
               take: 1,

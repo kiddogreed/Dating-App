@@ -41,7 +41,8 @@ export async function GET(req: Request) {
         where,
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           email: true,
           role: true,
           isActive: true,

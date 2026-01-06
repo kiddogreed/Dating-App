@@ -24,7 +24,8 @@ async function promoteCurrentUser() {
     select: {
       id: true,
       email: true,
-      name: true,
+      firstName: true,
+      lastName: true,
       role: true,
     },
   });

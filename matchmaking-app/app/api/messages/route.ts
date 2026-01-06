@@ -34,14 +34,16 @@ export async function GET(req: NextRequest) {
         sender: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             image: true,
           },
         },
         receiver: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             image: true,
           },
         },
@@ -119,14 +121,16 @@ export async function POST(req: NextRequest) {
         sender: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             image: true,
           },
         },
         receiver: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             image: true,
           },
         },
