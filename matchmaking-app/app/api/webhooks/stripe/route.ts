@@ -54,6 +54,9 @@ export async function POST(req: Request) {
 
           // Get full subscription details
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          
+          // Type assertion to access current_period_end
+          const currentPeriodEnd = (subscription as any).current_period_end;
 
           // Update database
           await prisma.subscription.upsert({
@@ -63,14 +66,14 @@ export async function POST(req: Request) {
               stripeCustomerId: customerId,
               stripeSubscriptionId: subscriptionId,
               stripePriceId: subscription.items.data[0].price.id,
-              stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              stripeCurrentPeriodEnd: new Date(currentPeriodEnd * 1000),
               status: "ACTIVE",
               plan: "PREMIUM",
             },
             update: {
               stripeSubscriptionId: subscriptionId,
               stripePriceId: subscription.items.data[0].price.id,
-              stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              stripeCurrentPeriodEnd: new Date(currentPeriodEnd * 1000),
               status: "ACTIVE",
               plan: "PREMIUM",
             },
@@ -83,6 +86,7 @@ export async function POST(req: Request) {
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
+        const currentPeriodEnd = (subscription as any).current_period_end;
         
         const dbSubscription = await prisma.subscription.findUnique({
           where: { stripeSubscriptionId: subscription.id },
@@ -93,7 +97,7 @@ export async function POST(req: Request) {
             where: { id: dbSubscription.id },
             data: {
               stripePriceId: subscription.items.data[0].price.id,
-              stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              stripeCurrentPeriodEnd: new Date(currentPeriodEnd * 1000),
               status: subscription.status === "active" ? "ACTIVE" : "INACTIVE",
             },
           });
@@ -126,10 +130,12 @@ export async function POST(req: Request) {
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
+        const invoiceSubscription = (invoice as any).subscription;
         
-        if (invoice.subscription) {
-          const subscriptionId = invoice.subscription as string;
+        if (invoiceSubscription) {
+          const subscriptionId = invoiceSubscription as string;
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const currentPeriodEnd = (subscription as any).current_period_end;
 
           const dbSubscription = await prisma.subscription.findUnique({
             where: { stripeSubscriptionId: subscriptionId },
@@ -139,7 +145,7 @@ export async function POST(req: Request) {
             await prisma.subscription.update({
               where: { id: dbSubscription.id },
               data: {
-                stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                stripeCurrentPeriodEnd: new Date(currentPeriodEnd * 1000),
                 status: "ACTIVE",
               },
             });
@@ -152,9 +158,10 @@ export async function POST(req: Request) {
 
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
+        const invoiceSubscription = (invoice as any).subscription;
         
-        if (invoice.subscription) {
-          const subscriptionId = invoice.subscription as string;
+        if (invoiceSubscription) {
+          const subscriptionId = invoiceSubscription as string;
 
           const dbSubscription = await prisma.subscription.findUnique({
             where: { stripeSubscriptionId: subscriptionId },

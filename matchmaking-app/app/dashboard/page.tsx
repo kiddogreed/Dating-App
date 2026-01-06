@@ -85,7 +85,7 @@ export default async function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Status Card */}
-        {!profile ? (
+        {profile === null ? (
           <Card className="mb-6 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
             <CardHeader>
               <CardTitle className="text-purple-900">Complete Your Profile</CardTitle>
