@@ -21,25 +21,25 @@ export async function GET(req: NextRequest) {
         ],
       },
       include: {
-        initiator: {
+        User_Match_initiatorIdToUser: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
             image: true,
-            photos: {
+            Photo: {
               take: 1,
               orderBy: { createdAt: "desc" },
             },
           },
         },
-        receiver: {
+        User_Match_receiverIdToUser: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
             image: true,
-            photos: {
+            Photo: {
               take: 1,
               orderBy: { createdAt: "desc" },
             },
@@ -53,8 +53,8 @@ export async function GET(req: NextRequest) {
       matches.map(async (match) => {
         const otherUser =
           match.initiatorId === session.user.id
-            ? match.receiver
-            : match.initiator;
+            ? match.User_Match_receiverIdToUser
+            : match.User_Match_initiatorIdToUser;
 
         const lastMessage = await prisma.message.findFirst({
           where: {

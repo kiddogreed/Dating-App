@@ -66,12 +66,12 @@ export async function GET(req: NextRequest) {
     const profiles = await prisma.profile.findMany({
       where: filters,
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
-            photos: {
+            Photo: {
               take: 3,
               orderBy: { createdAt: "desc" },
             },

@@ -50,14 +50,14 @@ export async function GET(req: Request) {
           bannedReason: true,
           lastLoginAt: true,
           createdAt: true,
-          profile: {
+          Profile: {
             select: {
               age: true,
               gender: true,
               location: true,
             },
           },
-          subscription: {
+          Subscription: {
             select: {
               plan: true,
               status: true,
@@ -65,9 +65,9 @@ export async function GET(req: Request) {
           },
           _count: {
             select: {
-              photos: true,
-              matchesInitiated: true,
-              messagesSent: true,
+              Photo: true,
+              Match_Match_initiatorIdToUser: true,
+              Message_Message_senderIdToUser: true,
             },
           },
         },

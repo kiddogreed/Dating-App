@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 /**
  * Development endpoint to create an admin user
@@ -56,11 +57,13 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
+        id: crypto.randomUUID(),
         email,
         password: hashedPassword,
         firstName: emailName,
         lastName: "Admin",
         role: makeAdmin ? "ADMIN" : "USER",
+        updatedAt: new Date(),
       },
       select: {
         id: true,

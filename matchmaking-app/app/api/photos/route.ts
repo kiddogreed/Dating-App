@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
+import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
     // Save photo URL to database
     const photo = await prisma.photo.create({
       data: {
+        id: crypto.randomUUID(),
         userId: session.user.id,
         url: uploadResponse.secure_url,
       },

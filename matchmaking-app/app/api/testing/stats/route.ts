@@ -16,7 +16,7 @@ export async function GET() {
     ] = await Promise.all([
       prisma.user.count(),
       prisma.profile.count(),
-      prisma.user.count({ where: { photos: { some: {} } } }),
+      prisma.user.count({ where: { Photo: { some: {} } } }),
       prisma.match.count(),
       prisma.match.count({ where: { status: "ACCEPTED" } }),
       prisma.message.count(),
@@ -37,14 +37,14 @@ export async function GET() {
         firstName: true,
             lastName: true,
         email: true,
-        profile: {
+        Profile: {
           select: {
             age: true,
             gender: true,
             location: true,
           },
         },
-        subscription: {
+        Subscription: {
           select: {
             plan: true,
             status: true,
@@ -85,10 +85,10 @@ export async function GET() {
         email: u.email,
         firstName: u.firstName,
         lastName: u.lastName,
-        age: u.profile?.age,
-        gender: u.profile?.gender,
-        location: u.profile?.location,
-        plan: u.subscription?.plan,
+        age: u.Profile?.age,
+        gender: u.Profile?.gender,
+        location: u.Profile?.location,
+        plan: u.Subscription?.plan,
       })),
     });
   } catch (error: any) {

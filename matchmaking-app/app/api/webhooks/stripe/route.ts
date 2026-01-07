@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
+import crypto from "crypto";
 
 // This is needed to read the raw body for webhook signature verification
 export const runtime = "nodejs";
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
           await prisma.subscription.upsert({
             where: { userId },
             create: {
+              id: crypto.randomUUID(),
               userId,
               stripeCustomerId: customerId,
               stripeSubscriptionId: subscriptionId,
@@ -69,6 +71,7 @@ export async function POST(req: Request) {
               stripeCurrentPeriodEnd: new Date(currentPeriodEnd * 1000),
               status: "ACTIVE",
               plan: "PREMIUM",
+              updatedAt: new Date(),
             },
             update: {
               stripeSubscriptionId: subscriptionId,

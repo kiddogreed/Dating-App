@@ -13,13 +13,40 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong'>('weak');
   const router = useRouter();
+
+  // Calculate password strength
+  function calculatePasswordStrength(pwd: string): 'weak' | 'medium' | 'strong' {
+    let strength = 0;
+    if (pwd.length >= 8) strength++;
+    if (pwd.length >= 12) strength++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
+    if (/[0-9]/.test(pwd)) strength++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) strength++;
+
+    if (strength <= 2) return 'weak';
+    if (strength <= 3) return 'medium';
+    return 'strong';
+  }
+
+  function handlePasswordChange(value: string) {
+    setPassword(value);
+    setPasswordStrength(calculatePasswordStrength(value));
+  }
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
+
+    // Validate password strength
+    if (passwordStrength === 'weak') {
+      setError("Password is too weak. Please use a stronger password.");
+      setLoading(false);
+      return;
+    }
 
     // Validate password match
     if (password !== confirmPassword) {
@@ -118,13 +145,59 @@ export default function RegisterPage() {
           <label className="block text-sm font-medium mb-1">Password</label>
           <input
             type="password"
-            placeholder="At least 6 characters"
+            placeholder="Create a strong password"
             className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => handlePasswordChange(e.target.value)}
             required
-            minLength={6}
           />
+          
+          {/* Password Strength Indicator */}
+          {password && (
+            <div className="mt-2">
+              <div className="flex gap-1 mb-1">
+                <div className={`h-1 flex-1 rounded ${
+                  password.length > 0 ? 
+                    passwordStrength === 'weak' ? 'bg-red-500' : 
+                    passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                  : 'bg-gray-200'
+                }`} />
+                <div className={`h-1 flex-1 rounded ${
+                  passwordStrength === 'medium' || passwordStrength === 'strong' ? 
+                    passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                  : 'bg-gray-200'
+                }`} />
+                <div className={`h-1 flex-1 rounded ${
+                  passwordStrength === 'strong' ? 'bg-green-500' : 'bg-gray-200'
+                }`} />
+              </div>
+              <p className={`text-xs ${
+                passwordStrength === 'weak' ? 'text-red-600' :
+                passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'
+              }`}>
+                Password strength: {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
+              </p>
+            </div>
+          )}
+          
+          {/* Password Requirements */}
+          <div className="mt-2 text-xs text-gray-600 space-y-1">
+            <p className="font-medium">Password must contain:</p>
+            <ul className="list-disc list-inside space-y-0.5 ml-2">
+              <li className={password.length >= 8 ? 'text-green-600' : ''}>
+                At least 8 characters
+              </li>
+              <li className={/[a-z]/.test(password) && /[A-Z]/.test(password) ? 'text-green-600' : ''}>
+                Upper and lowercase letters
+              </li>
+              <li className={/[0-9]/.test(password) ? 'text-green-600' : ''}>
+                At least one number
+              </li>
+              <li className={/[^a-zA-Z0-9]/.test(password) ? 'text-green-600' : ''}>
+                Special character (recommended)
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div>

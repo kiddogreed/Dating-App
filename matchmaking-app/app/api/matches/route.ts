@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
 
 // Like a profile (create or update match)
 export async function POST(req: NextRequest) {
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest) {
       // Just record the pass, don't create a match
       await prisma.match.create({
         data: {
+          id: crypto.randomUUID(),
           initiatorId: session.user.id,
           receiverId: targetUserId,
           status: "REJECTED",
@@ -87,6 +89,7 @@ export async function POST(req: NextRequest) {
       // Create a pending like
       await prisma.match.create({
         data: {
+          id: crypto.randomUUID(),
           initiatorId: session.user.id,
           receiverId: targetUserId,
           status: "PENDING",
@@ -122,29 +125,29 @@ export async function GET(req: NextRequest) {
         ],
       },
       include: {
-        initiator: {
+        User_Match_initiatorIdToUser: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
             email: true,
             image: true,
-            profile: true,
-            photos: {
+            Profile: true,
+            Photo: {
               take: 1,
               orderBy: { createdAt: "desc" },
             },
           },
         },
-        receiver: {
+        User_Match_receiverIdToUser: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
             email: true,
             image: true,
-            profile: true,
-            photos: {
+            Profile: true,
+            Photo: {
               take: 1,
               orderBy: { createdAt: "desc" },
             },
@@ -158,8 +161,8 @@ export async function GET(req: NextRequest) {
     const formattedMatches = matches.map((match: any) => {
       const otherUser =
         match.initiatorId === session.user.id
-          ? match.receiver
-          : match.initiator;
+          ? match.User_Match_receiverIdToUser
+          : match.User_Match_initiatorIdToUser;
 
       return {
         matchId: match.id,

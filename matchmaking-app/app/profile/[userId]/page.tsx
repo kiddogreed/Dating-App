@@ -27,11 +27,12 @@ export default async function ProfileViewPage({
   const profile = await prisma.profile.findUnique({
     where: { userId },
     include: {
-      user: {
+      User: {
         select: {
-          name: true,
+          firstName: true,
+          lastName: true,
           email: true,
-          photos: {
+          Photo: {
             orderBy: { createdAt: "desc" },
             take: 6,
           },
@@ -48,13 +49,9 @@ export default async function ProfileViewPage({
   const isOwnProfile = session.user.id === userId;
 
   // Get user initials for avatar
-  const initials = profile.user.name
-    ? profile.user.name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+  const fullName = `${profile.User.firstName} ${profile.User.lastName}`;
+  const initials = profile.User.firstName && profile.User.lastName
+    ? `${profile.User.firstName[0]}${profile.User.lastName[0]}`.toUpperCase()
     : "U";
 
   return (
@@ -87,7 +84,7 @@ export default async function ProfileViewPage({
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-3xl text-purple-900">
-                      {profile.user.name || "Anonymous"}
+                      {fullName || "Anonymous"}
                     </CardTitle>
                     <CardDescription className="text-lg mt-1">
                       {profile.age} years old • {profile.gender}
@@ -165,14 +162,14 @@ export default async function ProfileViewPage({
         </Card>
 
         {/* Photos Section */}
-        {profile.user.photos && profile.user.photos.length > 0 && (
+        {profile.User.Photo && profile.User.Photo.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Photos</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {profile.user.photos.map((photo: any) => (
+                {profile.User.Photo.map((photo: any) => (
                   <img
                     key={photo.id}
                     src={photo.url}
@@ -194,7 +191,7 @@ export default async function ProfileViewPage({
                   🚀 Coming Soon
                 </p>
                 <p className="text-blue-700 text-sm">
-                  Send messages, like profiles, and connect with {profile.user.name || "this user"}!
+                  Send messages, like profiles, and connect with {fullName || "this user"}!
                 </p>
               </div>
             </CardContent>

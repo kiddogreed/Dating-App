@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,11 +45,13 @@ export async function POST(req: NextRequest) {
     // Create profile
     const profile = await prisma.profile.create({
       data: {
+        id: crypto.randomUUID(),
         userId: session.user.id,
         bio: bio?.trim() || null,
         age: Number.parseInt(age),
         gender,
         location: location?.trim() || null,
+        updatedAt: new Date(),
       },
     });
 
@@ -70,7 +73,7 @@ export async function GET(req: NextRequest) {
     const profile = await prisma.profile.findUnique({
       where: { userId: session.user.id },
       include: {
-        user: {
+        User: {
           select: {
             firstName: true,
             lastName: true,

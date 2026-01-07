@@ -6,43 +6,37 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id                    String        @id @default(cuid())
-  firstName             String?
-  lastName              String?
-  email                 String        @unique
-  password              String
-  role                  UserRole      @default(USER)
-  isActive              Boolean       @default(true)
-  isBanned              Boolean       @default(false)
-  bannedAt              DateTime?
-  bannedReason          String?
-  lastLoginAt           DateTime?
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  image                 String?
-  emailVerified         Boolean       @default(false)
-  emailVerificationToken String?      @unique
-  emailVerifiedAt       DateTime?
-  passwordResetToken    String?       @unique
-  passwordResetExpiry   DateTime?
-  matchesInitiated      Match[]       @relation("MatchInitiator")
-  matchesReceived       Match[]       @relation("MatchReceiver")
-  messagesReceived      Message[]     @relation("ReceivedMessages")
-  messagesSent          Message[]     @relation("SentMessages")
-  photos                Photo[]
-  profile               Profile?
-  subscription          Subscription?
+model Match {
+  id                           String      @id
+  initiatorId                  String
+  receiverId                   String
+  createdAt                    DateTime    @default(now())
+  status                       MatchStatus @default(PENDING)
+  User_Match_initiatorIdToUser User        @relation("Match_initiatorIdToUser", fields: [initiatorId], references: [id])
+  User_Match_receiverIdToUser  User        @relation("Match_receiverIdToUser", fields: [receiverId], references: [id])
 }
 
-enum UserRole {
-  USER
-  ADMIN
-  MODERATOR
+model Message {
+  id                            String   @id
+  senderId                      String
+  receiverId                    String
+  content                       String
+  createdAt                     DateTime @default(now())
+  isRead                        Boolean  @default(false)
+  User_Message_receiverIdToUser User     @relation("Message_receiverIdToUser", fields: [receiverId], references: [id])
+  User_Message_senderIdToUser   User     @relation("Message_senderIdToUser", fields: [senderId], references: [id])
+}
+
+model Photo {
+  id        String   @id
+  userId    String
+  url       String
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id])
 }
 
 model Profile {
-  id              String          @id @default(cuid())
+  id              String          @id
   userId          String          @unique
   bio             String?
   age             Int?
@@ -50,9 +44,52 @@ model Profile {
   nickname        String?
   displayNameType DisplayNameType @default(FIRST_NAME)
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  updatedAt       DateTime
   gender          Gender?
-  user            User            @relation(fields: [userId], references: [id])
+  User            User            @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id                     String             @id
+  userId                 String             @unique
+  stripeCustomerId       String?            @unique
+  stripeSubscriptionId   String?            @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+  status                 SubscriptionStatus @default(INACTIVE)
+  plan                   SubscriptionPlan   @default(FREE)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime
+  User                   User               @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id                               String        @id
+  firstName                        String?
+  lastName                         String?
+  email                            String        @unique
+  password                         String
+  role                             UserRole      @default(USER)
+  isActive                         Boolean       @default(true)
+  isBanned                         Boolean       @default(false)
+  bannedAt                         DateTime?
+  bannedReason                     String?
+  lastLoginAt                      DateTime?
+  createdAt                        DateTime      @default(now())
+  updatedAt                        DateTime
+  image                            String?
+  emailVerified                    Boolean       @default(false)
+  emailVerificationToken           String?       @unique
+  emailVerifiedAt                  DateTime?
+  passwordResetToken               String?       @unique
+  passwordResetExpiry              DateTime?
+  Match_Match_initiatorIdToUser    Match[]       @relation("Match_initiatorIdToUser")
+  Match_Match_receiverIdToUser     Match[]       @relation("Match_receiverIdToUser")
+  Message_Message_receiverIdToUser Message[]     @relation("Message_receiverIdToUser")
+  Message_Message_senderIdToUser   Message[]     @relation("Message_senderIdToUser")
+  Photo                            Photo[]
+  Profile                          Profile?
+  Subscription                     Subscription?
 }
 
 enum DisplayNameType {
@@ -67,54 +104,16 @@ enum Gender {
   OTHER
 }
 
-model Photo {
-  id        String   @id @default(cuid())
-  userId    String
-  url       String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Message {
-  id         String   @id @default(cuid())
-  senderId   String
-  receiverId String
-  content    String
-  createdAt  DateTime @default(now())
-  isRead     Boolean  @default(false)
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
-}
-
-model Match {
-  id          String      @id @default(cuid())
-  initiatorId String
-  receiverId  String
-  createdAt   DateTime    @default(now())
-  status      MatchStatus @default(PENDING)
-  initiator   User        @relation("MatchInitiator", fields: [initiatorId], references: [id])
-  receiver    User        @relation("MatchReceiver", fields: [receiverId], references: [id])
-}
-
-model Subscription {
-  id                     String             @id @default(cuid())
-  userId                 String             @unique
-  stripeCustomerId       String?            @unique
-  stripeSubscriptionId   String?            @unique
-  stripePriceId          String?
-  stripeCurrentPeriodEnd DateTime?
-  status                 SubscriptionStatus @default(INACTIVE)
-  plan                   SubscriptionPlan   @default(FREE)
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
-  user                   User               @relation(fields: [userId], references: [id])
-}
-
 enum MatchStatus {
   PENDING
   ACCEPTED
   REJECTED
   BLOCKED
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
 }
 
 enum SubscriptionStatus {
@@ -123,7 +122,8 @@ enum SubscriptionStatus {
   INACTIVE
 }
 
-enum SubscriptionPlan {
-  FREE
-  PREMIUM
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
 }

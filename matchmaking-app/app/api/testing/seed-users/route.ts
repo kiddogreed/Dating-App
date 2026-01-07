@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -92,35 +93,42 @@ export async function POST(req: Request) {
         // Create user with profile and photo
         const user = await prisma.user.create({
           data: {
+            id: crypto.randomUUID(),
             firstName,
             lastName,
             email,
             password: hashedPassword,
             emailVerified: true, // Auto-verify test users
-            profile: {
+            updatedAt: new Date(),
+            Profile: {
               create: {
+                id: crypto.randomUUID(),
                 age,
                 gender,
                 location,
                 bio,
+                updatedAt: new Date(),
               },
             },
-            photos: {
+            Photo: {
               create: {
+                id: crypto.randomUUID(),
                 url: randomElement(photoUrls),
               },
             },
-            subscription: {
+            Subscription: {
               create: {
+                id: crypto.randomUUID(),
                 status: Math.random() > 0.7 ? "ACTIVE" : "INACTIVE",
                 plan: Math.random() > 0.7 ? "PREMIUM" : "FREE",
+                updatedAt: new Date(),
               },
             },
           },
           include: {
-            profile: true,
-            photos: true,
-            subscription: true,
+            Profile: true,
+            Photo: true,
+            Subscription: true,
           },
         });
 
@@ -151,6 +159,7 @@ export async function POST(req: Request) {
       try {
         const match = await prisma.match.create({
           data: {
+            id: crypto.randomUUID(),
             initiatorId: user1.id,
             receiverId: user2.id,
             status: Math.random() > 0.5 ? "ACCEPTED" : "PENDING",
@@ -163,18 +172,21 @@ export async function POST(req: Request) {
           await prisma.message.createMany({
             data: [
               {
+                id: crypto.randomUUID(),
                 senderId: user1.id,
                 receiverId: user2.id,
                 content: "Hey! How are you doing?",
                 isRead: Math.random() > 0.5,
               },
               {
+                id: crypto.randomUUID(),
                 senderId: user2.id,
                 receiverId: user1.id,
                 content: "Hi! I'm great, thanks for asking! How about you?",
                 isRead: Math.random() > 0.5,
               },
               {
+                id: crypto.randomUUID(),
                 senderId: user1.id,
                 receiverId: user2.id,
                 content: "Doing well! Would love to chat more.",
@@ -202,8 +214,8 @@ export async function POST(req: Request) {
         email: u.email,
         firstName: u.firstName,
         lastName: u.lastName,
-        age: u.profile?.age,
-        location: u.profile?.location,
+        age: u.Profile?.age,
+        location: u.Profile?.location,
       })),
     });
   } catch (error: any) {

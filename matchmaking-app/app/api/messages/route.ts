@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
 
 // Get conversation messages between two users
 export async function GET(req: NextRequest) {
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
         ],
       },
       include: {
-        sender: {
+        User_Message_senderIdToUser: {
           select: {
             id: true,
             firstName: true,
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
             image: true,
           },
         },
-        receiver: {
+        User_Message_receiverIdToUser: {
           select: {
             id: true,
             firstName: true,
@@ -113,12 +114,13 @@ export async function POST(req: NextRequest) {
     // Create message
     const message = await prisma.message.create({
       data: {
+        id: crypto.randomUUID(),
         senderId: session.user.id,
         receiverId,
         content: content.trim(),
       },
       include: {
-        sender: {
+        User_Message_senderIdToUser: {
           select: {
             id: true,
             firstName: true,
@@ -126,7 +128,7 @@ export async function POST(req: NextRequest) {
             image: true,
           },
         },
-        receiver: {
+        User_Message_receiverIdToUser: {
           select: {
             id: true,
             firstName: true,

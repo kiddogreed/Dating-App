@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import crypto from "crypto";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -62,10 +63,12 @@ export async function getOrCreateStripeCustomer(
   await prisma.subscription.upsert({
     where: { userId },
     create: {
+      id: crypto.randomUUID(),
       userId,
       stripeCustomerId: customer.id,
       status: "INACTIVE",
       plan: "FREE",
+      updatedAt: new Date(),
     },
     update: {
       stripeCustomerId: customer.id,

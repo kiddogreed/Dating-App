@@ -23,9 +23,10 @@ export const authOptions: NextAuthOptions = {
         if (!user) throw new Error("User not found");
 
         // Check if email is verified
-        if (!user.emailVerified) {
-          throw new Error("Please verify your email before logging in");
-        }
+        // TODO: Re-enable for production after setting up RESEND_API_KEY
+        // if (!user.emailVerified) {
+        //   throw new Error("Please verify your email before logging in");
+        // }
 
         // Check if user is banned
         if (user.isBanned) {

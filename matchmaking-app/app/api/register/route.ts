@@ -27,8 +27,20 @@ export async function POST(req: Request) {
     }
 
     // Validate password strength
-    if (typeof password !== 'string' || password.length < 6) {
-      return Response.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+    if (typeof password !== 'string' || password.length < 8) {
+      return Response.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    }
+
+    // Check for uppercase and lowercase
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
+      return Response.json({ 
+        error: "Password must contain both uppercase and lowercase letters" 
+      }, { status: 400 });
+    }
+
+    // Check for number
+    if (!/[0-9]/.test(password)) {
+      return Response.json({ error: "Password must contain at least one number" }, { status: 400 });
     }
 
     // Validate first and last name
@@ -55,11 +67,13 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: { 
+        id: randomBytes(16).toString('hex'),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: trimmedEmail, 
         password: hashed,
         emailVerificationToken: verificationToken,
+        updatedAt: new Date(),
       },
     });
 

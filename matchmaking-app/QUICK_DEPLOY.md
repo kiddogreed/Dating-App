@@ -6,6 +6,7 @@
 - Railway: https://railway.app → New PostgreSQL
 - Cloudinary: https://cloudinary.com → Free account
 - Stripe: https://stripe.com → Get API keys
+- Resend: https://resend.com → Free account (100 emails/day)
 - Vercel: https://vercel.com → Connect GitHub
 
 ### 2. Get Credentials (3 min)
@@ -13,6 +14,7 @@
 Railway: Copy PostgreSQL URL
 Cloudinary: Cloud name, API key, API secret
 Stripe: Publishable key, Secret key
+Resend: API key (Dashboard → API Keys)
 NextAuth: openssl rand -base64 32
 ```
 
@@ -43,6 +45,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_..."
 STRIPE_SECRET_KEY="sk_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 NEXT_PUBLIC_APP_URL="https://your-app.vercel.app"
+RESEND_API_KEY="re_..."
 ```
 
 ---
