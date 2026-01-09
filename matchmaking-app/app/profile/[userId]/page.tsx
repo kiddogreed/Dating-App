@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { notFound } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { getDisplayName, getUserInitials } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 
 export default async function ProfileViewPage({
   params,
-}: {
+}: Readonly<{
   params: Promise<{ userId: string }>;
-}) {
+}>) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -48,11 +48,17 @@ export default async function ProfileViewPage({
   // Check if this is the current user's profile
   const isOwnProfile = session.user.id === userId;
 
-  // Get user initials for avatar
-  const fullName = `${profile.User.firstName} ${profile.User.lastName}`;
-  const initials = profile.User.firstName && profile.User.lastName
-    ? `${profile.User.firstName[0]}${profile.User.lastName[0]}`.toUpperCase()
-    : "U";
+  // Get user display name and initials using helper functions
+  const userWithProfile = {
+    firstName: profile.User.firstName,
+    lastName: profile.User.lastName,
+    Profile: {
+      nickname: profile.nickname,
+      displayNameType: profile.displayNameType,
+    },
+  };
+  const displayName = getDisplayName(userWithProfile);
+  const initials = getUserInitials(userWithProfile);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,7 +90,7 @@ export default async function ProfileViewPage({
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-3xl text-purple-900">
-                      {fullName || "Anonymous"}
+                      {displayName}
                     </CardTitle>
                     <CardDescription className="text-lg mt-1">
                       {profile.age} years old • {profile.gender}
@@ -191,7 +197,7 @@ export default async function ProfileViewPage({
                   🚀 Coming Soon
                 </p>
                 <p className="text-blue-700 text-sm">
-                  Send messages, like profiles, and connect with {fullName || "this user"}!
+                  Send messages, like profiles, and connect with {displayName || "this user"}!
                 </p>
               </div>
             </CardContent>

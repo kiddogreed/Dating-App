@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
+import { randomUUID } from "node:crypto";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     // Create profile
     const profile = await prisma.profile.create({
       data: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         userId: session.user.id,
         bio: bio?.trim() || null,
         age: Number.parseInt(age),
@@ -103,7 +103,7 @@ export async function PUT(req: NextRequest) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { bio, age, gender, location } = await req.json();
+    const { bio, age, gender, location, nickname, displayNameType } = await req.json();
 
     // Validate age if provided
     if (age && (age < 18 || age > 100)) {
@@ -113,6 +113,19 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Validate displayNameType if provided
+    if (displayNameType && !['FIRST_NAME', 'NICKNAME', 'FULL_NAME'].includes(displayNameType)) {
+      return Response.json(
+        { error: "Invalid display name type" },
+        { status: 400 }
+      );
+    }
+
+    // If displayNameType is NICKNAME but no nickname provided, revert to FIRST_NAME
+    const finalDisplayNameType = displayNameType === 'NICKNAME' && !nickname?.trim() 
+      ? 'FIRST_NAME' 
+      : displayNameType;
+
     // Update profile
     const profile = await prisma.profile.update({
       where: { userId: session.user.id },
@@ -121,6 +134,9 @@ export async function PUT(req: NextRequest) {
         ...(age && { age: Number.parseInt(age) }),
         ...(gender && { gender }),
         ...(location !== undefined && { location: location?.trim() || null }),
+        ...(nickname !== undefined && { nickname: nickname?.trim() || null }),
+        ...(finalDisplayNameType && { displayNameType: finalDisplayNameType }),
+        updatedAt: new Date(),
       },
     });
 

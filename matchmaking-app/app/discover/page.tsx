@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getDisplayName } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,10 +20,17 @@ interface Profile {
   age: number;
   gender: string;
   location: string | null;
-  user: {
+  nickname?: string | null;
+  displayNameType?: 'FIRST_NAME' | 'NICKNAME' | 'FULL_NAME';
+  User: {
     id: string;
-    name: string;
-    photos: Array<{ id: string; url: string }>;
+    firstName?: string | null;
+    lastName?: string | null;
+    Photo: Array<{ id: string; url: string }>;
+    Profile?: {
+      nickname?: string | null;
+      displayNameType?: 'FIRST_NAME' | 'NICKNAME' | 'FULL_NAME';
+    };
   };
 }
 
@@ -34,7 +42,7 @@ interface Filters {
 }
 
 export default function DiscoverPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -271,22 +279,34 @@ export default function DiscoverPage() {
           <Card className="overflow-hidden">
             {/* Profile Photo */}
             <div className="relative h-96 bg-gradient-to-br from-purple-100 to-pink-100">
-              {currentProfile.user.photos.length > 0 ? (
+              {currentProfile.User.Photo.length > 0 ? (
                 <img
-                  src={currentProfile.user.photos[0].url}
-                  alt={currentProfile.user.name}
+                  src={currentProfile.User.Photo[0].url}
+                  alt={getDisplayName({ 
+                    firstName: currentProfile.User.firstName,
+                    lastName: currentProfile.User.lastName,
+                    Profile: currentProfile.User.Profile
+                  })}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <span className="text-6xl text-purple-300">
-                    {currentProfile.user.name?.charAt(0).toUpperCase() || "?"}
+                    {getDisplayName({ 
+                      firstName: currentProfile.User.firstName,
+                      lastName: currentProfile.User.lastName,
+                      Profile: currentProfile.User.Profile
+                    })?.charAt(0).toUpperCase() || "?"}
                   </span>
                 </div>
               )}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
                 <h2 className="text-white text-3xl font-bold">
-                  {currentProfile.user.name}, {currentProfile.age}
+                  {getDisplayName({ 
+                    firstName: currentProfile.User.firstName,
+                    lastName: currentProfile.User.lastName,
+                    Profile: currentProfile.User.Profile
+                  })}, {currentProfile.age}
                 </h2>
                 {currentProfile.location && (
                   <p className="text-white/90 mt-1">📍 {currentProfile.location}</p>
@@ -305,11 +325,11 @@ export default function DiscoverPage() {
                     <p className="text-gray-700">{currentProfile.bio}</p>
                   </div>
                 )}
-                {currentProfile.user.photos.length > 1 && (
+                {currentProfile.User.Photo.length > 1 && (
                   <div>
                     <h3 className="font-semibold mb-2">More Photos</h3>
                     <div className="grid grid-cols-3 gap-2">
-                      {currentProfile.user.photos.slice(1).map((photo) => (
+                      {currentProfile.User.Photo.slice(1).map((photo) => (
                         <img
                           key={photo.id}
                           src={photo.url}

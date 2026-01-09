@@ -47,7 +47,8 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: `${user.firstName} ${user.lastName}`,
           firstName: user.firstName,
-          lastName: user.lastName
+          lastName: user.lastName,
+          emailVerified: user.emailVerified,
         };
       }
     })
@@ -63,15 +64,17 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.firstName = (user as any).firstName;
         token.lastName = (user as any).lastName;
+        token.emailVerified = (user as any).emailVerified;
       }
       return token;
     },
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        session.user.id = token.id;
         (session.user as any).firstName = token.firstName;
         (session.user as any).lastName = token.lastName;
+        (session.user as any).emailVerified = token.emailVerified;
       }
       return session;
     }

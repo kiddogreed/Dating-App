@@ -84,7 +84,19 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return Response.json({ profiles }, { status: 200 });
+    // Format profiles to include display name information
+    const formattedProfiles = profiles.map(profile => ({
+      ...profile,
+      User: {
+        ...profile.User,
+        Profile: {
+          nickname: profile.nickname,
+          displayNameType: profile.displayNameType,
+        },
+      },
+    }));
+
+    return Response.json({ profiles: formattedProfiles }, { status: 200 });
   } catch (error) {
     console.error("Discover profiles error:", error);
     return Response.json({ error: "Server error" }, { status: 500 });

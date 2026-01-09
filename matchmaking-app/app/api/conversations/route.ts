@@ -31,6 +31,12 @@ export async function GET(req: NextRequest) {
               take: 1,
               orderBy: { createdAt: "desc" },
             },
+            Profile: {
+              select: {
+                nickname: true,
+                displayNameType: true,
+              },
+            },
           },
         },
         User_Match_receiverIdToUser: {
@@ -42,6 +48,12 @@ export async function GET(req: NextRequest) {
             Photo: {
               take: 1,
               orderBy: { createdAt: "desc" },
+            },
+            Profile: {
+              select: {
+                nickname: true,
+                displayNameType: true,
+              },
             },
           },
         },

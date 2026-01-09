@@ -20,6 +20,8 @@ export default function ProfileEditPage() {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [location, setLocation] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [displayNameType, setDisplayNameType] = useState("FIRST_NAME");
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [error, setError] = useState("");
@@ -59,6 +61,8 @@ export default function ProfileEditPage() {
       setAge(data.profile.age?.toString() || "");
       setGender(data.profile.gender || "");
       setLocation(data.profile.location || "");
+      setNickname(data.profile.nickname || "");
+      setDisplayNameType(data.profile.displayNameType || "FIRST_NAME");
     } catch (err) {
       setError("Failed to load profile data");
       console.error(err);
@@ -95,6 +99,8 @@ export default function ProfileEditPage() {
           age: ageNum,
           gender,
           location: location.trim() || null,
+          nickname: nickname.trim() || null,
+          displayNameType,
         }),
       });
 
@@ -220,6 +226,55 @@ export default function ProfileEditPage() {
                   onChange={(e) => setLocation(e.target.value)}
                   maxLength={100}
                 />
+              </div>
+
+              {/* Display Name Settings */}
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold mb-4">Display Name Settings</h3>
+                
+                {/* Nickname */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="nickname">
+                    Nickname <span className="text-gray-500 text-sm">(Optional)</span>
+                  </Label>
+                  <Input
+                    id="nickname"
+                    type="text"
+                    placeholder="e.g., Johnny, Alex, Sam"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    maxLength={50}
+                  />
+                  <p className="text-xs text-gray-500">
+                    If you prefer to go by a different name
+                  </p>
+                </div>
+
+                {/* Display Name Type */}
+                <div className="space-y-2">
+                  <Label htmlFor="displayNameType">
+                    How should we display your name?
+                  </Label>
+                  <Select value={displayNameType} onValueChange={setDisplayNameType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="FIRST_NAME">
+                        First name only ({session?.user?.firstName || "John"})
+                      </SelectItem>
+                      <SelectItem value="NICKNAME" disabled={!nickname}>
+                        Nickname {nickname ? `(${nickname})` : "(Set a nickname first)"}
+                      </SelectItem>
+                      <SelectItem value="FULL_NAME">
+                        Full name ({session?.user?.firstName} {session?.user?.lastName || "Doe"})
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    This is how other users will see your name throughout the app
+                  </p>
+                </div>
               </div>
             </CardContent>
 

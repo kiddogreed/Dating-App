@@ -4,18 +4,24 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getDisplayName } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { UnreadBadge } from "@/components/UnreadBadge";
 import { useUnreadCount } from "@/hooks/useUnreadCount";
 
 interface Conversation {
   user: {
     id: string;
-    name: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    name?: string;
     image: string | null;
     photos: Array<{ id: string; url: string }>;
+    Profile?: {
+      nickname?: string | null;
+      displayNameType?: 'FIRST_NAME' | 'NICKNAME' | 'FULL_NAME';
+    } | null;
   };
   lastMessage: {
     id: string;
@@ -137,6 +143,7 @@ export default function MessagesPage() {
                 {conversations.map((conv) => {
                   const photo = conv.user.photos[0]?.url || conv.user.image;
                   const isFromMe = conv.lastMessage?.senderId === session?.user?.id;
+                  const displayName = getDisplayName(conv.user);
                   
                   return (
                     <Link
@@ -150,12 +157,12 @@ export default function MessagesPage() {
                           {photo ? (
                             <img
                               src={photo}
-                              alt={conv.user.name}
+                              alt={displayName}
                               className="w-14 h-14 rounded-full object-cover"
                             />
                           ) : (
                             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xl font-semibold">
-                              {conv.user.name?.charAt(0).toUpperCase() || "?"}
+                              {displayName?.charAt(0).toUpperCase() || "?"}
                             </div>
                           )}
                           <UnreadBadge count={conv.unreadCount} />
@@ -165,7 +172,7 @@ export default function MessagesPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="font-semibold text-gray-900 truncate">
-                              {conv.user.name}
+                              {displayName}
                             </h3>
                             {conv.lastMessage && (
                               <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
