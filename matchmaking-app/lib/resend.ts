@@ -28,18 +28,14 @@ export async function sendVerificationEmail(
   }
 
   try {
-    const emailHtml = render(
-      VerificationEmailTemplate({
-        firstName,
-        verificationLink,
-      })
-    );
-
     await resend.emails.send({
       from: 'Matchmaking App <onboarding@resend.dev>',
       to: email,
       subject: 'Verify Your Email - Matchmaking App',
-      html: emailHtml,
+      react: VerificationEmailTemplate({
+        firstName,
+        verificationLink,
+      }),
     });
 
     return true;
@@ -61,18 +57,14 @@ export async function sendPasswordResetEmail(
   }
 
   try {
-    const emailHtml = render(
-      PasswordResetEmailTemplate({
-        firstName,
-        resetLink,
-      })
-    );
-
     await resend.emails.send({
       from: 'Matchmaking App <onboarding@resend.dev>',
       to: email,
       subject: 'Reset Your Password - Matchmaking App',
-      html: emailHtml,
+      react: PasswordResetEmailTemplate({
+        firstName,
+        resetLink,
+      }),
     });
 
     return true;
