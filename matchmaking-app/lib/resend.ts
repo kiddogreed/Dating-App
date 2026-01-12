@@ -28,7 +28,7 @@ export async function sendVerificationEmail(
   }
 
   try {
-    const emailHtml = await render(
+    const emailHtml = render(
       VerificationEmailTemplate({
         firstName,
         verificationLink,
@@ -61,7 +61,7 @@ export async function sendPasswordResetEmail(
   }
 
   try {
-    const emailHtml = await render(
+    const emailHtml = render(
       PasswordResetEmailTemplate({
         firstName,
         resetLink,
