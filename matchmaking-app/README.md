@@ -10,121 +10,35 @@ A modern, production-ready matchmaking/dating application built with Next.js, fe
 
 ---
 
-## 🚀 Quick Start
+# Matchmaking App
 
-### Prerequisites
-- Node.js 18+
-- PostgreSQL database
-- Cloudinary account
-- Stripe account
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/matchmaking-app.git
-cd matchmaking-app
-
-# Install dependencies
-npm install
-
-# Setup environment variables
-cp .env.template .env
-# Fill in your environment variables
-
-# Run database migrations
-npx prisma migrate dev
-
-# Start development server
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to see your app.
+A modern, production-ready matchmaking/dating application built with Next.js, featuring real-time messaging, Stripe subscriptions, and AI-powered matching.
 
 ---
 
-## ✨ Features
+## Quick Start
 
-### Core Features
-- 🔐 **Authentication** - NextAuth with credentials and JWT
-- 👤 **User Profiles** - Customizable profiles with bio, age, location, gender
-- 📸 **Photo Uploads** - Multiple photos via Cloudinary
-- 💬 **Real-Time Messaging** - Live chat with Socket.IO
-- ❤️ **Matching System** - Swipe-style like/pass with mutual matching
-- 🔍 **Search & Filters** - Age, gender, location filtering
-- 💳 **Subscriptions** - Stripe-powered payment system
-- 👑 **Admin Panel** - User management, statistics, ban system
-
-### Technical Features
-- Server and Client Components
-- API Routes with Next.js App Router
-- Type-safe database with Prisma
-- Responsive design with Tailwind CSS
-- Real-time updates with Socket.IO
-- Secure payment processing with Stripe
-- Image optimization with Cloudinary
-- Production-ready build system
+See [appdetails.md] for app features and user guides.
+See [development.md] for developer setup, build, and test instructions.
+See [roadmap.md] for project roadmap and future plans.
 
 ---
 
-## 🏗️ Tech Stack
-
-| Category | Technology |
-|----------|-----------|
-| **Framework** | Next.js 16 (App Router) |
-| **Frontend** | React 19, TypeScript, Tailwind CSS |
-| **Backend** | Next.js API Routes, Node.js |
-| **Database** | PostgreSQL + Prisma ORM |
-| **Authentication** | NextAuth.js |
-| **Real-time** | Socket.IO |
-| **Payments** | Stripe |
-| **Storage** | Cloudinary |
-| **UI Components** | Shadcn/UI + Radix UI |
+## Tech Stack
+- Next.js 16 (App Router)
+- React 19, TypeScript, Tailwind CSS
+- PostgreSQL + Prisma ORM
+- NextAuth.js, Socket.IO, Stripe, Cloudinary
 
 ---
 
-## 📁 Project Structure
-
-```
-matchmaking-app/
-├── app/                      # Next.js app directory
-│   ├── api/                 # API routes
-│   │   ├── auth/           # Authentication endpoints
-│   │   ├── messages/       # Messaging endpoints
-│   │   ├── matches/        # Matching endpoints
-│   │   ├── subscription/   # Stripe endpoints
-│   │   └── webhooks/       # Webhook handlers
-│   ├── dashboard/          # User dashboard
-│   ├── discover/           # Match discovery
-│   ├── messages/           # Chat interface
-│   ├── profile/            # Profile pages
-│   └── admin/              # Admin panel
-├── components/              # Reusable components
-├── lib/                    # Utility functions
-│   ├── auth.ts            # NextAuth config
-│   ├── prisma.ts          # Database client
-│   └── stripe.ts          # Stripe config
-├── prisma/                 # Database schema
-└── public/                 # Static assets
-```
+## Project Structure
+- See [appdetails.md] and [development.md] for details.
 
 ---
 
-## 🗄️ Database Schema
-
-```prisma
-User
-├── Profile (1:1)
-├── Photos (1:many)
-├── Messages (1:many)
-├── Matches (1:many)
-└── Subscription (1:1)
-```
-
-**Models:**
-- User (authentication & core data)
-- Profile (user profile information)
-- Photo (user uploaded images)
+## License
+MIT
 - Message (chat messages)
 - Match (user connections)
 - Subscription (Stripe subscriptions)
